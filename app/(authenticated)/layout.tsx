@@ -11,22 +11,15 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isWelcomePage = pathname === '/';
-
-  if (isWelcomePage) {
-    return <>{children}</>;
-  }
-
   return (
     <AuthGuard>
-      <div className='flex flex-col min-h-screen bg-gray-50'>
-        <Header />
-        <main className='flex-1 overflow-y-auto'>
-          <AuthProvider>{children}</AuthProvider>
-        </main>
-        <BottomBar />
-      </div>
+      <AuthProvider>
+        <div className='flex flex-col min-h-screen bg-gray-50'>
+          <Header />
+          <main className='flex-1 overflow-y-auto'>{children}</main>
+          <BottomBar />
+        </div>
+      </AuthProvider>
     </AuthGuard>
   );
 }

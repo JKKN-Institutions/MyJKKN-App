@@ -39,7 +39,7 @@ const Logo: React.FC<LogoProps> = ({
         fontFamily='Arial, sans-serif'
         fontSize='32'
         fontWeight='bold'
-        fill='var(--primary-foreground)'
+        fill='white'
         fontStyle='italic'
       >
         My
@@ -52,7 +52,7 @@ const Logo: React.FC<LogoProps> = ({
         fontFamily='Arial, sans-serif'
         fontSize='30'
         fontWeight='bold'
-        fill='var(--primary)'
+        fill='black'
       >
         JKKN
       </text>

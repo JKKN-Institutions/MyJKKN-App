@@ -531,34 +531,6 @@ export default function HomePage() {
         {/* Image Slider */}
         <ImageSlider />
 
-        {/* Marquee for college names */}
-        <div className='my-8 py-3 rounded-lg'>
-          <Marquee
-            className='text-sm md:text-base hover:cursor-pointer gap-4 font-medium text-black'
-            pauseOnHover
-            repeat={2}
-          >
-            <span className='flex items-center gap-2 justify-center'>
-              <Image
-                src='/images/logo.jpeg'
-                alt='JKKN Logo'
-                width={50}
-                height={50}
-              />
-              JKKN College of Engineering and Technology
-            </span>
-            <span className='flex items-center gap-2 justify-center mr-4'>
-              <Image
-                src='/images/logo.jpeg'
-                alt='JKKN Logo'
-                width={50}
-                height={50}
-              />
-              JKKN College of Applied Sciences
-            </span>
-          </Marquee>
-        </div>
-
         {/* Two-column layout for desktop */}
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
           {/* Main content column */}
