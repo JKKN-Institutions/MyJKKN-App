@@ -15,6 +15,14 @@ import { cn } from '@/lib/utils';
 import { Marquee } from '@/components/magicui/marquee';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 
+// Helper function to get time of day greeting
+const getTimeOfDay = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
+};
+
 // Define the easing function
 const easeOutCubic = (t: number): number => {
   return 1 - Math.pow(1 - t, 3);
@@ -398,27 +406,32 @@ export default function HomePage() {
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user data on page load
+  // Fetch user data when component mounts
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        setIsLoading(true);
         const supabase = createClientSupabaseClient();
-        const { data, error } = await supabase.auth.getUser();
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
 
-        if (error) {
-          console.error('Authentication error:', error.message);
-          return;
-        }
+        if (user) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('first_name')
+            .eq('id', user.id)
+            .single();
 
-        if (data.user) {
-          // Use user's name from metadata if available, otherwise use email
-          const name =
-            data.user.user_metadata?.full_name ||
-            data.user.user_metadata?.name ||
-            data.user.email?.split('@')[0] ||
-            'Student';
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            setIsLoading(false);
+            return;
+          }
 
-          setUserName(name);
+          if (data && data.first_name) {
+            setUserName(data.first_name);
+          }
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -472,57 +485,386 @@ export default function HomePage() {
       <main className='flex-1 px-5 py-6 md:px-8 lg:px-12 md:py-8 max-w-7xl mx-auto w-full'>
         {/* Welcome Message */}
         <div className='mb-8 overflow-hidden'>
-          <div className='relative rounded-xl p-6 md:p-8 border border-primary/10 shadow-sm group'>
+          <div className='relative rounded-xl p-5 md:p-6 bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-sm border border-border/40 shadow-sm'>
             {/* Background decorative elements */}
             <div className='absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/5 blur-xl'></div>
-            <div className='absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-primary/5 blur-lg'></div>
+            <div className='absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-primary/5 blur-lg'></div>
 
-            <div className='relative flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
-              <div className='flex-1'>
-                <h1 className='text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-2 animate-in fade-in slide-in-from-bottom-3 duration-700'>
-                  {isLoading ? (
-                    <span className='animate-pulse'>Loading...</span>
-                  ) : (
-                    <>
-                      <div className='flex flex-col items-start gap-2'>
-                        hi, {''}
-                        <span className='text-lg font-semibold text-rose-600 transition-colors duration-300'>
-                          {userName}
+            <div className='relative z-10'>
+              {/* User greeting section */}
+              <div className='flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5 md:mb-8'>
+                <div>
+                  <div className='flex items-center gap-2 text-xs text-muted-foreground mb-1.5'>
+                    <svg
+                      className='h-3.5 w-3.5'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                        stroke='currentColor'
+                        strokeWidth='2'
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                      />
+                    </svg>
+                    <span>
+                      {new Date().toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {new Date().toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                      })}
+                    </span>
+                  </div>
+
+                  <h1 className='text-xl md:text-2xl lg:text-3xl font-bold text-foreground'>
+                    {isLoading ? (
+                      <div className='h-8 w-40 md:h-10 md:w-64 bg-muted/40 rounded-lg animate-pulse'></div>
+                    ) : (
+                      <div className='flex flex-col gap-1 md:flex-row md:items-end md:gap-2'>
+                        <span>Good {getTimeOfDay()},</span>
+                        <span className='text-primary font-semibold'>
+                          {userName || 'User'}
                         </span>
                       </div>
-                    </>
-                  )}
-                </h1>
-                <p className='text-muted-foreground mt-1 max-w-lg text-sm md:text-base animate-in fade-in slide-in-from-bottom-5 duration-1000'>
-                  We&apos;re glad to see you again. Here&apos;s what&apos;s new
-                  today. Check out your personalized dashboard.
-                </p>
+                    )}
+                  </h1>
+
+                  <p className='text-muted-foreground text-xs md:text-sm mt-1.5'>
+                    Welcome to your personalized dashboard
+                  </p>
+                </div>
+
+                {/* Weather Widget & Quick Navigation */}
+                <div className='flex flex-col md:flex-row gap-3 mt-4'>
+                  {/* Weather Widget */}
+                  <div className='bg-white dark:bg-gray-800 rounded-lg p-4 border border-border/40 shadow-sm flex-1'>
+                    <div className='flex items-center justify-between'>
+                      <div>
+                        <h3 className='text-sm font-medium'>Kuala Lumpur</h3>
+                        <div className='flex items-center mt-1'>
+                          <div className='text-3xl font-bold'>29°</div>
+                          <div className='ml-2'>
+                            <p className='text-xs text-muted-foreground'>
+                              Feels like 32°
+                            </p>
+                            <p className='text-xs'>Partly Cloudy</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className='h-12 w-12 text-primary'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          viewBox='0 0 24 24'
+                          fill='none'
+                          stroke='currentColor'
+                          strokeWidth='2'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                        >
+                          <path d='M17 18a5 5 0 0 0-10 0' />
+                          <line x1='12' y1='9' x2='12' y2='2' />
+                          <line x1='4.22' y1='10.22' x2='5.64' y2='11.64' />
+                          <line x1='1' y1='18' x2='3' y2='18' />
+                          <line x1='21' y1='18' x2='23' y2='18' />
+                          <line x1='18.36' y1='11.64' x2='19.78' y2='10.22' />
+                          <line x1='23' y1='22' x2='1' y2='22' />
+                          <polyline points='8 6 12 2 16 6' />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className='flex mt-3 pt-3 border-t border-border/40'>
+                      <div className='flex-1 text-center'>
+                        <p className='text-xs text-muted-foreground'>
+                          Humidity
+                        </p>
+                        <p className='text-sm font-medium'>68%</p>
+                      </div>
+                      <div className='flex-1 text-center border-x border-border/40'>
+                        <p className='text-xs text-muted-foreground'>Wind</p>
+                        <p className='text-sm font-medium'>8 km/h</p>
+                      </div>
+                      <div className='flex-1 text-center'>
+                        <p className='text-xs text-muted-foreground'>
+                          Precipitation
+                        </p>
+                        <p className='text-sm font-medium'>12%</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Navigation */}
+                  <div className='bg-white dark:bg-gray-800 rounded-lg p-4 border border-border/40 shadow-sm flex-1'>
+                    <h3 className='text-sm font-medium mb-3'>Quick Access</h3>
+                    <div className='grid grid-cols-3 gap-2'>
+                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5 text-primary'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                          />
+                        </svg>
+                        <span className='text-xs mt-1'>Calendar</span>
+                      </button>
+                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5 text-primary'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'
+                          />
+                        </svg>
+                        <span className='text-xs mt-1'>Payments</span>
+                      </button>
+                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5 text-primary'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
+                          />
+                        </svg>
+                        <span className='text-xs mt-1'>Members</span>
+                      </button>
+                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5 text-primary'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
+                          />
+                        </svg>
+                        <span className='text-xs mt-1'>Documents</span>
+                      </button>
+                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5 text-primary'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
+                          />
+                        </svg>
+                        <span className='text-xs mt-1'>Reports</span>
+                      </button>
+                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          className='h-5 w-5 text-primary'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
+                          />
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+                          />
+                        </svg>
+                        <span className='text-xs mt-1'>Settings</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className='hidden md:flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 bg-primary/10 rounded-full overflow-hidden group-hover:scale-110 transition-all duration-300 animate-in fade-in slide-in-from-right-3 duration-700'>
-                <svg
-                  className='w-8 h-8 lg:w-10 lg:h-10 text-primary group-hover:text-primary/90 transition-colors duration-300 group-hover:rotate-12 transform motion-safe:animate-pulse'
-                  xmlns='http://www.w3.org/2000/svg'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'
-                  />
-                </svg>
-              </div>
-            </div>
+              {/* Widgets for stats */}
+              <div className='grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 md:mt-0'>
+                {/* Courses Widget */}
+                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
+                  <div className='flex items-start justify-between'>
+                    <div>
+                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
+                        My Courses
+                      </h3>
+                      <div className='flex items-baseline'>
+                        <span className='text-2xl font-bold mr-1'>3</span>
+                        <span className='text-xs text-muted-foreground'>
+                          courses
+                        </span>
+                      </div>
+                      <p className='text-xs text-green-500 mt-1.5'>
+                        1 new this week
+                      </p>
+                    </div>
+                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        className='h-4 w-4'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Animated decorative dots */}
-            <div className='hidden md:block absolute bottom-3 right-6'>
-              <div className='flex space-x-1'>
-                <div className='w-1.5 h-1.5 rounded-full bg-primary/40 animate-ping-slow'></div>
-                <div className='w-1.5 h-1.5 rounded-full bg-primary/40 animate-ping-slower'></div>
-                <div className='w-1.5 h-1.5 rounded-full bg-primary/40 animate-ping-slowest'></div>
+                {/* Tasks Widget */}
+                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
+                  <div className='flex items-start justify-between'>
+                    <div>
+                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
+                        Tasks
+                      </h3>
+                      <div className='flex items-baseline'>
+                        <span className='text-2xl font-bold mr-1'>7</span>
+                        <span className='text-xs text-muted-foreground'>
+                          total
+                        </span>
+                      </div>
+                      <p className='text-xs text-amber-500 mt-1.5'>
+                        2 due today
+                      </p>
+                    </div>
+                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        className='h-4 w-4'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Widget */}
+                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
+                  <div className='flex items-start justify-between'>
+                    <div>
+                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
+                        Progress
+                      </h3>
+                      <div className='flex items-baseline'>
+                        <span className='text-2xl font-bold mr-1'>68</span>
+                        <span className='text-xs text-muted-foreground'>%</span>
+                      </div>
+                      <div className='w-full bg-gray-200 rounded-full h-1.5 mt-2'>
+                        <div
+                          className='bg-green-600 h-1.5 rounded-full'
+                          style={{ width: '68%' }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        className='h-4 w-4'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alerts Widget */}
+                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
+                  <div className='flex items-start justify-between'>
+                    <div>
+                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
+                        Alerts
+                      </h3>
+                      <div className='flex items-baseline'>
+                        <span className='text-2xl font-bold mr-1'>2</span>
+                        <span className='text-xs text-muted-foreground'>
+                          alerts
+                        </span>
+                      </div>
+                      <p className='text-xs text-rose-500 mt-1.5'>
+                        1 new notification
+                      </p>
+                    </div>
+                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
+                      <svg
+                        xmlns='http://www.w3.org/2000/svg'
+                        className='h-4 w-4'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
