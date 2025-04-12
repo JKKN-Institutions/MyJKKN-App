@@ -14,7 +14,6 @@ import {
 import { cn } from '@/lib/utils';
 import { Marquee } from '@/components/magicui/marquee';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
-import SplitText from '@/components/animation/SplitText';
 
 // Define the easing function
 const easeOutCubic = (t: number): number => {
@@ -486,22 +485,7 @@ export default function HomePage() {
                   ) : (
                     <>
                       <div className='flex flex-col items-start gap-2'>
-                        <SplitText
-                          text='Hi!'
-                          className='text-2xl font-semibold text-center'
-                          delay={150}
-                          animationFrom={{
-                            opacity: 0,
-                            transform: 'translate3d(0,50px,0)'
-                          }}
-                          animationTo={{
-                            opacity: 1,
-                            transform: 'translate3d(0,0,0)'
-                          }}
-                          easing={easeOutCubic}
-                          threshold={0.2}
-                          rootMargin='-50px'
-                        />
+                        hi, {''}
                         <span className='text-lg font-semibold text-rose-600 transition-colors duration-300'>
                           {userName}
                         </span>
