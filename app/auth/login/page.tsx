@@ -4,7 +4,7 @@ import LoginForm from './_components/login-form';
 
 export default function LoginPage() {
   return (
-    <div className='min-h-screen flex items-center justify-center bg-background p-4'>
+    <div className='min-h-screen flex items-center justify-center bg-black p-4'>
       <Suspense
         fallback={
           <div className='flex items-center justify-center'>

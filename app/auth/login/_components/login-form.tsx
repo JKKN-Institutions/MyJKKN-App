@@ -14,6 +14,8 @@ import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-hot-toast';
 import { BeatLoader } from 'react-spinners';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
+import GradientText from '@/components/animation/GradientText';
+import { BackgroundLines } from '@/components/animation/background-lines';
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -84,32 +86,44 @@ export default function LoginForm() {
   };
 
   return (
-    <Card className='w-full max-w-md'>
-      <CardHeader className='space-y-1'>
-        <CardTitle className='text-2xl font-bold tracking-tight text-center'>
-          Welcome to MyJKKN
-        </CardTitle>
-        <CardDescription className='text-center'>
-          Sign in with your institutional Google account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button
-          variant='outline'
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className='w-full flex items-center justify-center gap-2 h-12'
-        >
-          {isLoading ? (
-            <BeatLoader size={8} color='#000000' />
-          ) : (
-            <>
-              <FcGoogle className='h-5 w-5' />
-              <span>Sign in with Google</span>
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className='flex items-center justify-center h-screen w-full'>
+      <BackgroundLines className='flex bg-transparent items-center justify-center px-4'>
+        <Card className='w-full z-20 max-w-md bg-gray-950 border-none'>
+          <CardHeader className='space-y-1'>
+            <CardTitle className='text-2xl font-bold tracking-tight text-center text-white'>
+              Welcome to{' '}
+              <GradientText
+                colors={['#40ffaa', '#4079ff', '#40ffaa', '#4079ff', '#40ffaa']}
+                animationSpeed={3}
+                showBorder={false}
+                className='custom-class mt-2'
+              >
+                MyJKKN
+              </GradientText>
+            </CardTitle>
+            <CardDescription className='text-center'>
+              Sign in with your institutional Google account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant='outline'
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className='w-full bg-black border-none text-white flex items-center justify-center gap-2 h-12 cursor-pointer hover:bg-black hover:text-white'
+            >
+              {isLoading ? (
+                <BeatLoader size={8} color='#000000' />
+              ) : (
+                <>
+                  <FcGoogle className='h-5 w-5' />
+                  <span>Sign in with Google</span>
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </BackgroundLines>
+    </div>
   );
 }
