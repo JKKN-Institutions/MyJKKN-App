@@ -41,9 +41,9 @@ const BottomBar = () => {
   ];
 
   return (
-    <nav className='sticky bottom-0 bg-background border-t border-border py-2 px-4 flex justify-center'>
+    <nav className='sticky bottom-0 py-2 px-4 flex justify-center'>
       <TooltipProvider>
-        <Dock className='max-w-md w-full mx-auto'>
+        <Dock className='max-w-sm w-full mx-auto bg-white rounded-full shadow-md dark:bg-gray-800'>
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
