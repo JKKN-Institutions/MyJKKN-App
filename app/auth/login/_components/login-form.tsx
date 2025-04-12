@@ -26,9 +26,11 @@ export default function LoginForm() {
   useEffect(() => {
     const checkUser = async () => {
       const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      if (session) {
+        data: { user },
+        error
+      } = await supabase.auth.getUser();
+
+      if (user && !error) {
         router.push(redirectTo);
       }
     };

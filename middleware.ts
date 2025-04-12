@@ -53,26 +53,31 @@ export async function middleware(request: NextRequest) {
       return res;
     }
 
-    // Get and verify session
+    // Get and verify user (more secure than getSession)
     const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: authError
+    } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error('Session error:', sessionError);
+    if (authError) {
+      console.error('Auth error:', authError);
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 
-    if (!session) {
+    if (!user) {
       const redirectUrl = new URL('/auth/login', request.url);
       redirectUrl.searchParams.set('redirectTo', currentPath);
       return NextResponse.redirect(redirectUrl);
     }
 
+    // Also get the session to check expiration and handle token refresh
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+
     // Force session refresh if token is about to expire (within 5 minutes)
     if (
-      session.expires_at &&
+      session?.expires_at &&
       Date.now() > session.expires_at * 1000 - 5 * 60 * 1000
     ) {
       const { data: refreshedSession, error: refreshError } =
@@ -85,15 +90,15 @@ export async function middleware(request: NextRequest) {
     }
 
     // Add auth info to headers for server components
-    res.headers.set('x-user-id', session.user.id);
-    res.headers.set('x-user-email', session.user.email || '');
-    res.headers.set('x-session-expires', session.expires_at?.toString() || '');
+    res.headers.set('x-user-id', user.id);
+    res.headers.set('x-user-email', user.email || '');
+    res.headers.set('x-session-expires', session?.expires_at?.toString() || '');
 
     // Fetch and verify user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (profileError && profileError.code !== 'PGRST116') {

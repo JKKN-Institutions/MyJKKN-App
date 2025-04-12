@@ -10,6 +10,7 @@ import { RainbowButton } from '@/components/magicui/rainbow-button';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
+import { BackgroundLines } from '@/components/animation/background-lines';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -62,90 +63,92 @@ export default function WelcomePage() {
   // Show loading state while checking authentication
   if (isPageLoading) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-background dark:bg-black'>
+      <div className='flex items-center justify-center min-h-screen bg-black'>
         <LoadingSpinner size='lg' className='text-primary' />
       </div>
     );
   }
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6'>
-      <div className='w-full rounded-3xl flex flex-col items-center p-8'>
-        {/* Circular Image with Student */}
-        <div className='relative w-full h-72 mb-8'>
-          <div className='absolute inset-0 rounded-full flex items-center justify-center'>
-            <div className='relative w-full h-full flex items-center justify-center'>
-              <div className='relative z-10 w-full h-full flex items-center justify-center'>
-                <div className='absolute inset-0 z-10 scale-125'>
-                  <Orb
-                    hoverIntensity={0.5}
-                    rotateOnHover={true}
-                    hue={0}
-                    forceHoverState={false}
-                  />
-                </div>
-                <div className='relative z-0'>
-                  <GradientText
-                    colors={[
-                      'var(--primary)',
-                      'var(--accent)',
-                      'var(--primary)',
-                      'var(--accent)',
-                      'var(--primary)'
-                    ]}
-                    animationSpeed={3}
-                    showBorder={false}
-                    className='custom-class font-extrabold text-9xl'
-                  >
-                    AI
-                    <SparklesText
-                      text='AI'
-                      className='absolute z-30 inset-0'
-                      sparklesCount={8}
+    <div className='flex flex-col items-center justify-center min-h-screen bg-black text-foreground p-6'>
+      <BackgroundLines className='flex bg-transparent items-center justify-center w-full h-full px-4'>
+        <div className='w-full rounded-3xl flex flex-col items-center p-8'>
+          {/* Circular Image with Student */}
+          <div className='relative w-full h-72 mb-8'>
+            <div className='absolute inset-0 rounded-full flex items-center justify-center'>
+              <div className='relative w-full h-full flex items-center justify-center'>
+                <div className='relative z-10 w-full h-full flex items-center justify-center'>
+                  <div className='absolute inset-0 z-10 scale-125'>
+                    <Orb
+                      hoverIntensity={0.5}
+                      rotateOnHover={true}
+                      hue={0}
+                      forceHoverState={false}
                     />
-                  </GradientText>
+                  </div>
+                  <div className='relative z-0'>
+                    <GradientText
+                      colors={[
+                        'var(--primary)',
+                        'var(--accent)',
+                        'var(--primary)',
+                        'var(--accent)',
+                        'var(--primary)'
+                      ]}
+                      animationSpeed={3}
+                      showBorder={false}
+                      className='custom-class font-extrabold text-9xl'
+                    >
+                      AI
+                      <SparklesText
+                        text='AI'
+                        className='absolute z-30 inset-0'
+                        sparklesCount={8}
+                      />
+                    </GradientText>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Indicator Dots */}
+          <div className='flex space-x-1 mb-6'>
+            <div className='w-2 h-2 rounded-full bg-primary'></div>
+            <div className='w-2 h-2 rounded-full bg-primary'></div>
+            <div className='w-2 h-2 rounded-full bg-primary'></div>
+          </div>
+
+          {/* Heading */}
+          <h1 className='text-2xl text-white font-semibold mb-3 text-center'>
+            Grow your academic skills with MyJKKN
+          </h1>
+
+          {/* Subheading */}
+          <p className='text-center mb-8 text-sm text-muted-foreground'>
+            Here you can access all your institution resources and learning
+            materials
+          </p>
+
+          {/* CTA Button */}
+          <div className='w-full flex justify-center'>
+            <RainbowButton
+              className='w-fit text-center bg-primary text-primary-foreground'
+              disabled={isCheckingAuth}
+              onClick={handleGetStarted}
+            >
+              {isCheckingAuth ? (
+                <div className='flex items-center gap-2'>
+                  <LoadingSpinner size='sm' />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                'Get Started'
+              )}
+            </RainbowButton>
+          </div>
         </div>
-
-        {/* Indicator Dots */}
-        <div className='flex space-x-1 mb-6'>
-          <div className='w-2 h-2 rounded-full bg-primary'></div>
-          <div className='w-2 h-2 rounded-full bg-primary'></div>
-          <div className='w-2 h-2 rounded-full bg-primary'></div>
-        </div>
-
-        {/* Heading */}
-        <h1 className='text-2xl font-bold mb-3 text-center'>
-          Grow your academic skills with MyJKKN
-        </h1>
-
-        {/* Subheading */}
-        <p className='text-center mb-8 text-sm text-muted-foreground'>
-          Here you can access all your institution resources and learning
-          materials
-        </p>
-
-        {/* CTA Button */}
-        <div className='w-full flex justify-center'>
-          <RainbowButton
-            className='w-fit text-center bg-primary text-primary-foreground'
-            disabled={isCheckingAuth}
-            onClick={handleGetStarted}
-          >
-            {isCheckingAuth ? (
-              <div className='flex items-center gap-2'>
-                <LoadingSpinner size='sm' />
-                <span>Loading...</span>
-              </div>
-            ) : (
-              'Get Started'
-            )}
-          </RainbowButton>
-        </div>
-      </div>
+      </BackgroundLines>
     </div>
   );
 }
