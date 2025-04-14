@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Supabase SQL & Schema Rules:
 globs: lib/supabase/schema/**/*.sql, **/supabase/**/*.sql, **/migrations/**/*.sql
 alwaysApply: false

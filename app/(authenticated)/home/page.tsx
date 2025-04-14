@@ -413,28 +413,38 @@ export default function HomePage() {
         setIsLoading(true);
         const supabase = createClientSupabaseClient();
         const {
-          data: { user }
+          data: { user },
+          error: authError
         } = await supabase.auth.getUser();
 
+        if (authError) {
+          console.error('Error fetching auth user:', authError);
+          setIsLoading(false);
+          return;
+        }
+
         if (user) {
+          // Check if profiles table exists by handling potential errors
           const { data, error } = await supabase
             .from('profiles')
-            .select('first_name')
+            .select('full_name')
             .eq('id', user.id)
             .single();
 
           if (error) {
-            console.error('Error fetching user profile:', error);
-            setIsLoading(false);
-            return;
-          }
-
-          if (data && data.first_name) {
-            setUserName(data.first_name);
+            // If the error is 'not found', it means the profile doesn't exist yet
+            if (error.code === 'PGRST116') {
+              console.log('User profile not found, using default name');
+              // You could create a profile here if needed
+            } else {
+              console.error('Error fetching user profile:', error.message);
+            }
+          } else if (data && data.full_name) {
+            setUserName(data.full_name);
           }
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error in fetchUserData:', error);
       } finally {
         setIsLoading(false);
       }

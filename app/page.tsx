@@ -133,7 +133,7 @@ export default function WelcomePage() {
         </p>
 
         {/* CTA Button */}
-        <div className='w-full flex justify-center'>
+        <div className='w-full flex justify-center z-10'>
           <RainbowButton
             className='w-fit text-center bg-primary text-primary-foreground'
             disabled={isCheckingAuth}
