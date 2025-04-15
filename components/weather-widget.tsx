@@ -172,27 +172,30 @@ export function WeatherWidget({ className }: WeatherWidgetProps) {
   return (
     <div
       className={cn(
-        'bg-card text-card-foreground rounded-xl p-5 border border-border/40 shadow-sm transition-all duration-300 flex flex-col justify-between min-h-[180px]',
+        'text-white rounded-xl p-5 shadow-sm transition-all duration-300 flex flex-col justify-between min-h-[180px]',
         className
       )}
+      style={{
+        backgroundImage: 'linear-gradient(to top, #00c6fb 0%, #005bea 100%)'
+      }}
     >
       <div>
         {isLoading || locationLoading ? (
           // Loading State
           <div className='animate-pulse'>
             <div className='flex items-center justify-between mb-3'>
-              <div className='h-5 w-2/3 bg-muted/50 rounded'></div>
-              <div className='h-8 w-8 bg-muted/50 rounded-full'></div>
+              <div className='h-5 w-2/3 bg-white/30 rounded'></div>
+              <div className='h-8 w-8 bg-white/30 rounded-full'></div>
             </div>
             <div className='flex items-center'>
-              <div className='h-10 w-16 bg-muted/50 rounded mr-3'></div>
+              <div className='h-10 w-16 bg-white/30 rounded mr-3'></div>
               <div className='space-y-2'>
-                <div className='h-4 w-24 bg-muted/50 rounded'></div>
-                <div className='h-4 w-20 bg-muted/50 rounded'></div>
+                <div className='h-4 w-24 bg-white/30 rounded'></div>
+                <div className='h-4 w-20 bg-white/30 rounded'></div>
               </div>
             </div>
             {locationLoading && (
-              <div className='flex items-center justify-center mt-2 text-xs text-muted-foreground'>
+              <div className='flex items-center justify-center mt-2 text-xs text-white/80'>
                 <Loader2 className='h-3 w-3 mr-1 animate-spin' />
                 Getting your location...
               </div>
@@ -200,10 +203,10 @@ export function WeatherWidget({ className }: WeatherWidgetProps) {
           </div>
         ) : error ? (
           // Error State
-          <div className='text-center text-destructive flex flex-col items-center justify-center h-full p-4'>
-            <AlertTriangle className='h-7 w-7 mb-2 text-destructive/80' />
+          <div className='text-center text-white flex flex-col items-center justify-center h-full p-4'>
+            <AlertTriangle className='h-7 w-7 mb-2 text-white/90' />
             <p className='text-sm font-semibold mb-1'>Weather Unavailable</p>
-            <p className='text-xs text-muted-foreground'>{error}</p>
+            <p className='text-xs text-white/70'>{error}</p>
           </div>
         ) : weatherData ? (
           // Successfully Loaded State
@@ -235,7 +238,7 @@ export function WeatherWidget({ className }: WeatherWidgetProps) {
                 {Math.round(weatherData.current.temp_c)}°C
               </div>
               <div className='text-sm min-w-0'>
-                <p className='text-muted-foreground truncate'>
+                <p className='text-white/80 truncate'>
                   Feels like {Math.round(weatherData.current.feelslike_c)}°C
                 </p>
                 <p className='font-medium capitalize truncate'>
@@ -253,7 +256,7 @@ export function WeatherWidget({ className }: WeatherWidgetProps) {
       </div>
 
       {/* Weather Details Section */}
-      <div className='flex mt-auto pt-4 border-t border-border/40 text-center'>
+      <div className='flex mt-auto pt-4 border-t border-white/20 text-center'>
         {isLoading || locationLoading ? (
           // Loading state skeleton for details
           [1, 2, 3].map((i) => (
@@ -261,34 +264,34 @@ export function WeatherWidget({ className }: WeatherWidgetProps) {
               key={i}
               className={cn(
                 'flex-1 animate-pulse px-1',
-                i === 2 || i === 1 ? 'border-x border-border/40' : ''
+                i === 2 || i === 1 ? 'border-x border-white/20' : ''
               )}
             >
-              <div className='h-4 w-4 bg-muted/50 rounded-full mx-auto mb-1.5'></div>
-              <div className='h-3 w-10 bg-muted/50 rounded mx-auto mb-1'></div>
-              <div className='h-4 w-8 bg-muted/50 rounded mx-auto'></div>
+              <div className='h-4 w-4 bg-white/30 rounded-full mx-auto mb-1.5'></div>
+              <div className='h-3 w-10 bg-white/30 rounded mx-auto mb-1'></div>
+              <div className='h-4 w-8 bg-white/30 rounded mx-auto'></div>
             </div>
           ))
         ) : weatherData && !error ? (
           // Loaded state for details
           <>
             <div className='flex-1 px-1'>
-              <Droplet className='h-4 w-4 mx-auto mb-1 text-blue-400' />
-              <p className='text-xs text-muted-foreground'>Humidity</p>
+              <Droplet className='h-4 w-4 mx-auto mb-1 text-white/90' />
+              <p className='text-xs text-white/70'>Humidity</p>
               <p className='text-sm font-medium'>
                 {weatherData.current.humidity}%
               </p>
             </div>
-            <div className='flex-1 border-x border-border/40 px-1'>
-              <Wind className='h-4 w-4 mx-auto mb-1 text-gray-400' />
-              <p className='text-xs text-muted-foreground'>Wind</p>
+            <div className='flex-1 border-x border-white/20 px-1'>
+              <Wind className='h-4 w-4 mx-auto mb-1 text-white/90' />
+              <p className='text-xs text-white/70'>Wind</p>
               <p className='text-sm font-medium'>
                 {Math.round(weatherData.current.wind_kph)} km/h
               </p>
             </div>
             <div className='flex-1 px-1'>
-              <CloudRain className='h-4 w-4 mx-auto mb-1 text-cyan-400' />
-              <p className='text-xs text-muted-foreground'>Precip.</p>
+              <CloudRain className='h-4 w-4 mx-auto mb-1 text-white/90' />
+              <p className='text-xs text-white/70'>Precip.</p>
               <p className='text-sm font-medium'>
                 {weatherData.current.precip_mm} mm
               </p>
@@ -296,7 +299,7 @@ export function WeatherWidget({ className }: WeatherWidgetProps) {
           </>
         ) : (
           // Show placeholder if error or no data in the details section
-          <div className='flex-1 text-xs text-muted-foreground text-center py-4 col-span-3'>
+          <div className='flex-1 text-xs text-white/70 text-center py-4 col-span-3'>
             Details unavailable
           </div>
         )}

@@ -105,13 +105,20 @@ const WelcomeMessage = ({
   isLoading: boolean;
 }) => {
   return (
-    <div className='relative rounded-xl p-6 bg-gradient-to-br from-card via-card/95 to-card/90 backdrop-blur-sm border border-border/40 shadow-sm overflow-hidden h-full flex flex-col justify-center min-h-[180px]'>
+    <div
+      className='relative rounded-xl p-6 shadow-sm overflow-hidden flex flex-col justify-center min-h-[180px] text-white w-full'
+      style={{
+        backgroundImage: 'linear-gradient(to right, #f83600 0%, #f9d423 100%)'
+      }}
+    >
       {/* Background decorative elements */}
-      <div className='absolute -top-10 -right-10 w-32 h-32 rounded-full bg-primary/5 blur-xl opacity-60'></div>
-      <div className='absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-primary/5 blur-lg opacity-60'></div>
+      <div className='absolute -top-10 -right-10 w-32 h-32 rounded-full bg-yellow-500/20 blur-xl opacity-70'></div>
+      <div className='absolute top-20 right-10 w-16 h-16 rounded-full bg-orange-500/30 blur-xl opacity-60'></div>
+      <div className='absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-orange-600/20 blur-lg opacity-70'></div>
+      <div className='absolute bottom-12 left-12 w-12 h-12 rounded-full bg-yellow-400/30 blur-xl opacity-60'></div>
 
       <div className='relative z-10'>
-        <div className='flex items-center gap-2 text-xs text-muted-foreground mb-2'>
+        <div className='flex items-center gap-2 text-xs text-white/80 mb-2'>
           <Clock className='h-3.5 w-3.5' />
           <span>
             {new Date().toLocaleDateString('en-US', {
@@ -130,20 +137,20 @@ const WelcomeMessage = ({
           </span>
         </div>
 
-        <h1 className='text-2xl md:text-3xl font-bold text-foreground'>
+        <h1 className='text-2xl md:text-3xl font-bold text-white'>
           {isLoading ? (
-            <div className='h-8 w-48 md:h-9 md:w-64 bg-muted/30 rounded-lg animate-pulse'></div>
+            <div className='h-8 w-48 md:h-9 md:w-64 bg-white/30 rounded-lg animate-pulse'></div>
           ) : (
             <div className='flex flex-col sm:flex-row sm:items-end sm:gap-2'>
               <span>Good {getTimeOfDay()},</span>
-              <span className='text-primary font-semibold break-words'>
+              <span className='text-white font-semibold break-words'>
                 {userName || 'User'}
               </span>
             </div>
           )}
         </h1>
 
-        <p className='text-muted-foreground text-sm mt-2'>
+        <p className='text-white/80 text-sm mt-2'>
           Here&apos;s your overview for today.
         </p>
       </div>
@@ -163,9 +170,15 @@ const WeatherQuickAccess = () => {
   ];
 
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 w-full'>
       {/* Weather Widget */}
-      <WeatherWidget />
+      <div className='relative h-full'>
+        {/* Decorative cloud-like elements */}
+        <div className='absolute -top-3 -right-3 w-24 h-24 rounded-full bg-blue-100/30 blur-xl opacity-60 z-0'></div>
+        <div className='absolute -bottom-3 -left-3 w-16 h-16 rounded-full bg-sky-100/30 blur-lg opacity-60 z-0'></div>
+
+        <WeatherWidget className='relative overflow-hidden z-10 h-full' />
+      </div>
 
       {/* Quick Navigation */}
       <div className='bg-card text-card-foreground rounded-xl p-5 border border-border/40 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 min-h-[180px] flex flex-col'>
@@ -189,91 +202,6 @@ const WeatherQuickAccess = () => {
   );
 };
 
-// *** New Dashboard Stats Component ***
-const DashboardStats = () => {
-  const stats = [
-    {
-      label: 'My Courses',
-      value: 3,
-      unit: 'active',
-      change: '1 new this week',
-      changeColor: 'text-green-500',
-      icon: Briefcase
-    },
-    {
-      label: 'Tasks Due',
-      value: 7,
-      unit: 'total',
-      change: '2 due today',
-      changeColor: 'text-amber-500',
-      icon: ListChecks
-    },
-    {
-      label: 'Overall Progress',
-      value: 68,
-      unit: '%',
-      change: null,
-      changeColor: '',
-      icon: TrendingUp,
-      isProgress: true
-    },
-    {
-      label: 'Notifications',
-      value: 2,
-      unit: 'unread',
-      change: '1 new alert',
-      changeColor: 'text-rose-500',
-      icon: Bell
-    }
-  ];
-
-  return (
-    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6'>
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className='bg-card text-card-foreground rounded-xl p-4 shadow-sm border border-border/40 hover:border-primary/30 transition-all group hover:shadow-lg transform hover:-translate-y-1 duration-200'
-        >
-          <div className='flex items-start justify-between'>
-            <div>
-              <h3 className='text-sm font-medium text-muted-foreground mb-1'>
-                {stat.label}
-              </h3>
-              <div className='flex items-baseline'>
-                <span className='text-2xl lg:text-3xl font-bold mr-1.5'>
-                  {stat.value}
-                </span>
-                <span className='text-xs text-muted-foreground'>
-                  {stat.unit}
-                </span>
-              </div>
-              {stat.isProgress ? (
-                <div className='w-full bg-muted rounded-full h-1.5 mt-2.5 overflow-hidden'>
-                  <div
-                    className='bg-gradient-to-r from-green-400 to-green-600 h-1.5 rounded-full transition-all duration-500 ease-out'
-                    style={{ width: `${stat.value}%` }}
-                  ></div>
-                </div>
-              ) : (
-                stat.change && (
-                  <p
-                    className={cn('text-xs mt-2 font-medium', stat.changeColor)}
-                  >
-                    {stat.change}
-                  </p>
-                )
-              )}
-            </div>
-            <div className='p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-200 shrink-0'>
-              <stat.icon className='h-5 w-5' />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 // Image slider component
 const ImageSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -285,26 +213,52 @@ const ImageSlider = () => {
     {
       id: 1,
       image: '/images/slide1.png',
-      title: 'Welcome to MyJKKN',
-      description: 'Your complete learning platform'
+      title: 'JKKN College of Engineering and Technology'
     },
     {
       id: 2,
       image: '/images/slide2.jpg',
-      title: 'New Courses Available',
-      description: 'Explore our latest offerings'
+      title: 'JKKN Dental College and Hospital'
     },
     {
       id: 3,
       image: '/images/slide3.png',
-      title: 'Learn Anywhere',
-      description: 'Access your courses on any device'
+      title: 'JKKN College Of Allied Health Science'
     },
     {
       id: 4,
       image: '/images/slide4.png',
-      title: 'Stay Connected',
-      description: 'Engage with peers and instructors'
+      title: 'JKKN College of Pharmacy'
+    },
+    {
+      id: 5,
+      image: '/images/slide1.png',
+      title: 'JKKN College of Arts and Science'
+    },
+    {
+      id: 6,
+      image: '/images/slide2.jpg',
+      title: 'JKKN College of Education'
+    },
+    {
+      id: 7,
+      image: '/images/slide3.png',
+      title: 'JKKN College of Education'
+    },
+    {
+      id: 8,
+      image: '/images/slide4.png',
+      title: 'Sresakthimayeil Institute of Nursing and Research'
+    },
+    {
+      id: 9,
+      image: '/images/slide1.png',
+      title: 'JKKN Matriculation Higher Secondary School'
+    },
+    {
+      id: 10,
+      image: '/images/slide1.png',
+      title: 'Nattraja Vidhyalya'
     }
   ];
 
@@ -411,22 +365,21 @@ const ImageSlider = () => {
                 <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent' />
                 <div className='absolute inset-x-0 bottom-0 p-6 z-10 text-white'>
                   <h2 className='text-xl font-bold mb-1'>{slide.title}</h2>
-                  <p className='opacity-90 text-sm'>{slide.description}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Mobile navigation dots */}
-          <div className='absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20'>
+          <div className='absolute -bottom-4 left-0 right-0 flex justify-center gap-2 z-20'>
             {slides.map((_, index) => (
               <button
                 key={`mobile-dot-${index}`}
                 onClick={() => goToSlide(index)}
                 className={`w-2 h-2 rounded-full transition-colors duration-300 ${
                   currentSlide === index
-                    ? 'bg-white scale-110'
-                    : 'bg-white/50 hover:bg-white/80'
+                    ? 'bg-lime-600 scale-110'
+                    : 'bg-lime-600/50 hover:bg-lime-600/80'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -496,9 +449,6 @@ const ImageSlider = () => {
                         <h2 className='text-xl font-bold mb-1'>
                           {slide.title}
                         </h2>
-                        <p className='opacity-90 text-sm'>
-                          {slide.description}
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -508,7 +458,7 @@ const ImageSlider = () => {
           </div>
 
           {/* Desktop navigation dots */}
-          <div className='flex justify-center gap-2 mt-4'>
+          <div className='flex justify-center gap-2 mt-8'>
             {/* Create dots only if there's more than one page */}
             {maxDesktopIndex > 0 &&
               Array.from({ length: maxDesktopIndex + 1 }).map((_, index) => (
@@ -518,7 +468,7 @@ const ImageSlider = () => {
                   className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                     currentSlide === index
                       ? 'bg-primary scale-110'
-                      : 'bg-muted hover:bg-muted-foreground/50'
+                      : 'bg-primary/20 hover:bg-muted-foreground/50'
                   }`}
                   aria-label={`Go to slide group ${index + 1}`}
                 />
@@ -971,21 +921,19 @@ export default function HomePage() {
       <main className='flex-1 px-4 py-6 md:px-6 lg:px-8 md:py-8 max-w-7xl mx-auto w-full'>
         {/* Top Section: Welcome, Weather, Quick Access */}
         <section className='mb-8 md:mb-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
-          <div className='lg:col-span-1'>
+          <div className='lg:col-span-1 flex'>
             <WelcomeMessage userName={userName} isLoading={isLoading} />
           </div>
-          <div className='lg:col-span-2'>
+          <div className='lg:col-span-2 flex'>
             <WeatherQuickAccess />
           </div>
         </section>
 
-        {/* Dashboard Stats Section */}
-        <section className='mb-8 md:mb-10 lg:mb-12'>
-          <DashboardStats />
-        </section>
-
         {/* Image Slider */}
         <section className='mb-8 md:mb-10 lg:mb-12'>
+          <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
+            Our Institutions
+          </h2>
           <ImageSlider />
         </section>
 
