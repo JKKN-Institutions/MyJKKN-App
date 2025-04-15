@@ -39,6 +39,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
 import { AuthService } from '@/lib/services/auth/auth-service';
+import { useAuth } from '@/providers/auth-provider';
+import { LogOut } from 'lucide-react';
 
 interface ProfileFormProps {
   user: Profile;
@@ -47,7 +49,9 @@ interface ProfileFormProps {
 
 export function ProfileForm({ user, onComplete }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const supabase = createClientSupabaseClient();
+  const { signOut } = useAuth();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -117,6 +121,15 @@ export function ProfileForm({ user, onComplete }: ProfileFormProps) {
       onComplete?.();
     } catch (error) {
       console.error('Error refreshing profile:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -287,6 +300,21 @@ export function ProfileForm({ user, onComplete }: ProfileFormProps) {
           </Button>
           <Button type='submit' disabled={isLoading}>
             {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+          <Button
+            type='button'
+            variant='destructive'
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? (
+              'Logging out...'
+            ) : (
+              <>
+                <LogOut className='mr-2 h-4 w-4' />
+                Logout
+              </>
+            )}
           </Button>
         </div>
       </form>

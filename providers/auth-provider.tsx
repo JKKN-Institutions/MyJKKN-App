@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await AuthService.signOut();
       setUser(null);
-      router.push('/auth/login');
+      router.push('/');
       toast.success('Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);

@@ -63,7 +63,9 @@ const Header = () => {
   return (
     <header className='sticky top-0 z-50 bg-background border-b border-border px-5 py-3 flex items-center justify-between shadow-sm'>
       <div className='flex items-center'>
-        <Logo width={120} height={40} />
+        <Link href='/home'>
+          <Logo width={120} height={40} />
+        </Link>
       </div>
 
       <div className='flex items-center gap-2'>
@@ -87,11 +89,8 @@ const Header = () => {
         </button>
 
         {/* User Profile Icon with Hover Animation */}
-        <Link
-          href='/profile'
-          className='group relative p-2 text-muted-foreground hover:text-primary transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-opacity-50 rounded-full overflow-hidden'
-        >
-          <div className='relative z-10 flex items-center justify-center rounded-full'>
+        <Link href='/profile' className=''>
+          <div className='relative flex items-center justify-center rounded-full'>
             <Avatar className='h-10 w-10'>
               <AvatarImage
                 src={user.avatar_url || undefined}

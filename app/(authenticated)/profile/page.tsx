@@ -9,7 +9,8 @@ import {
   Phone,
   User2,
   CalendarDays,
-  BookOpen
+  BookOpen,
+  LogOut
 } from 'lucide-react';
 import { ProfileForm } from './_components/profile-form';
 import { useAuth } from '@/providers/auth-provider';
@@ -35,8 +36,9 @@ import {
 } from '@/components/ui/breadcrumb';
 
 export default function ProfilePage() {
-  const { user, loading, refreshUser } = useAuth();
+  const { user, loading, refreshUser, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (loading) {
     return (
@@ -91,6 +93,15 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className='flex flex-col gap-4 px-4 lg:px-14'>
       <div className='space-y-6'>
@@ -123,9 +134,25 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                  <Button onClick={() => setIsEditing(true)}>
-                    Edit Profile
-                  </Button>
+                  <div className='flex gap-2'>
+                    <Button onClick={() => setIsEditing(true)}>
+                      Edit Profile
+                    </Button>
+                    <Button
+                      variant='destructive'
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                    >
+                      {isLoggingOut ? (
+                        <BeatLoader color='#ffffff' size={8} />
+                      ) : (
+                        <>
+                          <LogOut className='mr-2 h-4 w-4' />
+                          Logout
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
 

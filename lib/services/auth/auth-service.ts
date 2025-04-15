@@ -37,8 +37,7 @@ export class AuthService {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      toast.success('Signed out successfully');
-      window.location.href = '/auth/login';
+      window.location.href = '/';
 
       return true;
     } catch (error) {

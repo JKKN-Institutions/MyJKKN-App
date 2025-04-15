@@ -89,7 +89,7 @@ export default function LoginForm() {
   return (
     <div className='flex items-center justify-center h-screen w-full'>
       <BackgroundLines className='flex bg-transparent items-center justify-center px-4'>
-        <div className='relative flex items-center justify-center w-full max-w-3xl h-[600px] overflow-hidden rounded-2xl'>
+        <div className='relative flex items-center justify-center w-full max-w-3xl h-[600px] overflow-hidden rounded-4xl'>
           <FlickeringGrid
             className='absolute inset-0 z-0 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)]'
             squareSize={4}
