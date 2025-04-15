@@ -118,7 +118,7 @@ const WelcomeMessage = ({
       <div className='absolute bottom-12 left-12 w-12 h-12 rounded-full bg-yellow-400/30 blur-xl opacity-60'></div>
 
       <div className='relative z-10'>
-        <div className='flex items-center gap-2 text-xs text-white/80 mb-2'>
+        <div className='flex items-center gap-2 text-base font-semibold text-white/80 mb-2'>
           <Clock className='h-3.5 w-3.5' />
           <span>
             {new Date().toLocaleDateString('en-US', {
@@ -141,7 +141,7 @@ const WelcomeMessage = ({
           {isLoading ? (
             <div className='h-8 w-48 md:h-9 md:w-64 bg-white/30 rounded-lg animate-pulse'></div>
           ) : (
-            <div className='flex flex-col sm:flex-row sm:items-end sm:gap-2'>
+            <div className='flex flex-col sm:gap-2'>
               <span>Good {getTimeOfDay()},</span>
               <span className='text-white font-semibold break-words'>
                 {userName || 'User'}
@@ -173,25 +173,23 @@ const WeatherQuickAccess = () => {
     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 w-full'>
       {/* Weather Widget */}
       <div className='relative h-full'>
-        {/* Decorative cloud-like elements */}
-        <div className='absolute -top-3 -right-3 w-24 h-24 rounded-full bg-blue-100/30 blur-xl opacity-60 z-0'></div>
-        <div className='absolute -bottom-3 -left-3 w-16 h-16 rounded-full bg-sky-100/30 blur-lg opacity-60 z-0'></div>
-
         <WeatherWidget className='relative overflow-hidden z-10 h-full' />
       </div>
 
       {/* Quick Navigation */}
-      <div className='bg-card text-card-foreground rounded-xl p-5 border border-border/40 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 min-h-[180px] flex flex-col'>
-        <h3 className='text-base font-semibold mb-4'>Quick Access</h3>
+      <div className='text-card-foreground rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 min-h-[180px] flex flex-col bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'>
+        <h3 className='text-base text-white font-semibold mb-4'>
+          Quick Access
+        </h3>
         <div className='grid grid-cols-3 gap-3 flex-grow'>
           {quickAccessItems.map((item) => (
             <Link
               href={item.href}
               key={item.label}
-              className='flex flex-col items-center justify-center p-3 rounded-lg bg-accent/50 hover:bg-accent transition-all duration-200 group transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card'
+              className='flex flex-col items-center justify-center p-3 rounded-lg bg-accent/50  transition-all duration-200 group transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card'
             >
-              <item.icon className='h-6 w-6 text-primary mb-1.5 group-hover:text-primary-foreground transition-colors duration-200' />
-              <span className='text-xs font-medium text-center text-foreground group-hover:text-primary-foreground transition-colors duration-200'>
+              <item.icon className='h-6 w-6 text-white mb-1.5 group-hover:text-primary-foreground transition-colors duration-200' />
+              <span className='text-xs font-medium text-center text-white group-hover:text-primary-foreground transition-colors duration-200'>
                 {item.label}
               </span>
             </Link>
