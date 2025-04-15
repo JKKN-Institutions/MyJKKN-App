@@ -104,6 +104,18 @@ const WelcomeMessage = ({
   userName: string;
   isLoading: boolean;
 }) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update the time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div
       className='relative rounded-xl p-6 shadow-sm overflow-hidden flex flex-col justify-center min-h-[180px] text-white w-full'
@@ -118,10 +130,10 @@ const WelcomeMessage = ({
       <div className='absolute bottom-12 left-12 w-12 h-12 rounded-full bg-yellow-400/30 blur-xl opacity-60'></div>
 
       <div className='relative z-10'>
-        <div className='flex items-center gap-2 text-base font-semibold text-white/80 mb-2'>
+        <div className='flex items-center gap-2 text-sm font-semibold text-white/80 mb-2'>
           <Clock className='h-3.5 w-3.5' />
           <span>
-            {new Date().toLocaleDateString('en-US', {
+            {currentTime.toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
               day: 'numeric'
@@ -129,9 +141,10 @@ const WelcomeMessage = ({
           </span>
           <span>•</span>
           <span>
-            {new Date().toLocaleTimeString('en-US', {
+            {currentTime.toLocaleTimeString('en-US', {
               hour: 'numeric',
               minute: 'numeric',
+              second: 'numeric',
               hour12: true
             })}
           </span>
@@ -486,73 +499,64 @@ const CategoryGrid = () => {
       name: 'Academic',
       icon: BookOpen,
       color: 'blue',
-      href: '/category/academic'
+      href: '/category/academic',
+      description: 'Course details, schedules, and academic resources'
     },
     {
       id: 2,
       name: 'Finance',
       icon: DollarSign,
       color: 'emerald',
-      href: '/category/finance'
+      href: '/category/finance',
+      description: 'Fees, payments, and financial assistance'
     },
     {
       id: 3,
       name: 'Library',
       icon: Library,
       color: 'purple',
-      href: '/category/library'
+      href: '/category/library',
+      description: 'Books, journals, and digital resources'
     },
     {
       id: 4,
       name: 'Events',
       icon: Calendar,
       color: 'orange',
-      href: '/category/events'
+      href: '/category/events',
+      description: 'Seminars, workshops, and campus activities'
     }
   ];
 
   // Define color themes for categories
   const colorThemes = {
     blue: {
-      gradient: 'from-blue-500/15 to-blue-600/15',
-      border: 'border-blue-500/30 hover:border-blue-500/50',
-      shadow: 'shadow-blue-500/10 group-hover:shadow-blue-500/20',
+      gradient: 'from-blue-500 to-blue-600',
+      hoverGradient: 'group-hover:from-blue-600 group-hover:to-blue-700',
       iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-      iconText: 'text-blue-600 dark:text-blue-400',
-      hoverIconBg: 'group-hover:bg-blue-500',
-      hoverIconText: 'group-hover:text-white',
-      hoverText: 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      shadow: 'shadow-blue-500/20'
     },
     emerald: {
-      gradient: 'from-emerald-500/15 to-emerald-600/15',
-      border: 'border-emerald-500/30 hover:border-emerald-500/50',
-      shadow: 'shadow-emerald-500/10 group-hover:shadow-emerald-500/20',
+      gradient: 'from-emerald-500 to-emerald-600',
+      hoverGradient: 'group-hover:from-emerald-600 group-hover:to-emerald-700',
       iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
-      iconText: 'text-emerald-600 dark:text-emerald-400',
-      hoverIconBg: 'group-hover:bg-emerald-500',
-      hoverIconText: 'group-hover:text-white',
-      hoverText:
-        'group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      shadow: 'shadow-emerald-500/20'
     },
     purple: {
-      gradient: 'from-purple-500/15 to-purple-600/15',
-      border: 'border-purple-500/30 hover:border-purple-500/50',
-      shadow: 'shadow-purple-500/10 group-hover:shadow-purple-500/20',
+      gradient: 'from-purple-500 to-purple-600',
+      hoverGradient: 'group-hover:from-purple-600 group-hover:to-purple-700',
       iconBg: 'bg-purple-100 dark:bg-purple-900/30',
-      iconText: 'text-purple-600 dark:text-purple-400',
-      hoverIconBg: 'group-hover:bg-purple-500',
-      hoverIconText: 'group-hover:text-white',
-      hoverText: 'group-hover:text-purple-600 dark:group-hover:text-purple-400'
+      iconColor: 'text-purple-600 dark:text-purple-400',
+      shadow: 'shadow-purple-500/20'
     },
     orange: {
-      gradient: 'from-orange-500/15 to-orange-600/15',
-      border: 'border-orange-500/30 hover:border-orange-500/50',
-      shadow: 'shadow-orange-500/10 group-hover:shadow-orange-500/20',
+      gradient: 'from-orange-500 to-orange-600',
+      hoverGradient: 'group-hover:from-orange-600 group-hover:to-orange-700',
       iconBg: 'bg-orange-100 dark:bg-orange-900/30',
-      iconText: 'text-orange-600 dark:text-orange-400',
-      hoverIconBg: 'group-hover:bg-orange-500',
-      hoverIconText: 'group-hover:text-white',
-      hoverText: 'group-hover:text-orange-600 dark:group-hover:text-orange-400'
+      iconColor: 'text-orange-600 dark:text-orange-400',
+      shadow: 'shadow-orange-500/20'
     }
   };
 
@@ -561,48 +565,47 @@ const CategoryGrid = () => {
       <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
         Explore Categories
       </h2>
-      <div className='grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5'>
         {categories.map((category) => {
           const theme = colorThemes[category.color as keyof typeof colorThemes];
           return (
             <Link
               href={category.href}
               key={category.id}
-              className='group relative rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
+              className='group relative overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
             >
-              {/* Background Gradient */}
+              {/* Card background with gradient */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-50 group-hover:opacity-100 transition-opacity duration-300 -z-10`}
+                className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} ${theme.hoverGradient} opacity-90 transition-all duration-300`}
               />
-              {/* Main Card Content */}
-              <div
-                className={cn(
-                  'bg-card/80 backdrop-blur-sm border rounded-xl p-5 md:p-6 flex flex-col items-center justify-center aspect-square transition-all duration-300',
-                  theme.border,
-                  theme.shadow
-                )}
-              >
+
+              <div className='relative p-6 flex flex-col h-full min-h-[180px]'>
+                {/* Decorative circles */}
+                <div className='absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 blur-xl opacity-60 -mr-12 -mt-12'></div>
+                <div className='absolute bottom-0 left-0 w-20 h-20 rounded-full bg-black/10 blur-xl opacity-60 -ml-10 -mb-10'></div>
+
                 {/* Icon Container */}
                 <div
-                  className={cn(
-                    'p-3 md:p-4 rounded-full mb-3 transition-all duration-300',
-                    theme.iconBg,
-                    theme.iconText,
-                    theme.hoverIconBg,
-                    theme.hoverIconText // Hover styles for icon
-                  )}
+                  className={`p-3 rounded-xl bg-white/20 backdrop-blur-sm w-fit mb-4 transition-transform duration-300 group-hover:scale-110 ${theme.shadow}`}
                 >
-                  <category.icon className='h-6 w-6 md:h-7 md:w-7' />
+                  <category.icon className='h-6 w-6 text-white' />
                 </div>
-                {/* Category Name */}
-                <span
-                  className={cn(
-                    'text-sm md:text-base font-medium text-center text-foreground transition-colors duration-300',
-                    theme.hoverText // Hover style for text
-                  )}
-                >
-                  {category.name}
-                </span>
+
+                {/* Content */}
+                <div className='mt-auto'>
+                  <h3 className='text-lg font-bold text-white mb-1'>
+                    {category.name}
+                  </h3>
+                  <p className='text-sm text-white/80 mb-3 line-clamp-2'>
+                    {category.description}
+                  </p>
+
+                  {/* Explore link */}
+                  <div className='flex items-center text-sm font-medium text-white/90 mt-auto group-hover:text-white transition-all duration-200'>
+                    <span>Explore</span>
+                    <ChevronRight className='h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200' />
+                  </div>
+                </div>
               </div>
             </Link>
           );
@@ -690,42 +693,6 @@ const ApplicationList = ({
           <ChevronRight className='h-4 w-4 ml-1' />
         </Link>
       )}
-    </div>
-  );
-};
-
-// Quick Links Component
-const QuickLinks = () => {
-  const links = [
-    { href: '/profile', icon: User, label: 'My Profile' },
-    { href: '/courses', icon: Briefcase, label: 'My Courses' },
-    { href: '/notifications', icon: Bell, label: 'Notifications' },
-    { href: '/help', icon: HelpCircle, label: 'Help & Support' }
-  ];
-
-  return (
-    <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm border border-border/30'>
-      <ul className='divide-y divide-border'>
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className='flex items-center p-4 hover:bg-accent/60 transition-colors group duration-200'
-            >
-              {/* Icon */}
-              <span className='w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-4 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200 flex-shrink-0'>
-                <link.icon className='h-5 w-5' />
-              </span>
-              {/* Label */}
-              <span className='text-foreground font-medium group-hover:text-primary transition-colors duration-200 flex-grow'>
-                {link.label}
-              </span>
-              {/* Chevron */}
-              <ChevronRight className='h-5 w-5 ml-2 text-muted-foreground/60 group-hover:text-primary transition-colors duration-200 transform group-hover:translate-x-1' />
-            </Link>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };
@@ -935,17 +902,17 @@ export default function HomePage() {
           <ImageSlider />
         </section>
 
+        {/* Category Grid */}
+        <CategoryGrid />
+
         {/* Two-column layout for main content + sidebar */}
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start'>
           {/* Main content column */}
-          <div className='lg:col-span-2 flex flex-col gap-8 md:gap-10 lg:gap-12'>
-            {/* Category Grid */}
-            <CategoryGrid />
-
-            {/* Announcements Section */}
+          <div className='lg:col-span-2 flex flex-col gap-8 md:gap-10 lg:gap-12 order-2 lg:order-1'>
+            {/* Announcements Section - Order changed for mobile */}
             <section>
               <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
-                Latest Announcements
+                Latest Events
               </h2>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 {announcements.map((announcement) => (
@@ -962,7 +929,7 @@ export default function HomePage() {
           </div>
 
           {/* Sidebar column */}
-          <div className='lg:col-span-1 flex flex-col gap-8 md:gap-10 lg:gap-12'>
+          <div className='lg:col-span-1 flex flex-col gap-8 md:gap-10 lg:gap-12 order-1 lg:order-2'>
             {/* Available Applications Section */}
             <section>
               <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
@@ -970,14 +937,6 @@ export default function HomePage() {
               </h2>
               {/* Limit to 4 apps for sidebar */}
               <ApplicationList applications={applications} limit={4} />
-            </section>
-
-            {/* Quick Links Card */}
-            <section>
-              <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
-                Quick Links
-              </h2>
-              <QuickLinks />
             </section>
           </div>
         </div>
