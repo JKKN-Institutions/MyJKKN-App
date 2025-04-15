@@ -9,11 +9,79 @@ import {
   Library,
   Calendar,
   Star,
-  ChevronRight
+  ChevronRight,
+  Clock,
+  Sun,
+  Wind,
+  Droplet,
+  ClipboardList,
+  BarChart,
+  Bell,
+  User,
+  HelpCircle,
+  Settings,
+  CreditCard,
+  Users,
+  FileText,
+  Briefcase,
+  ListChecks,
+  TrendingUp,
+  AlertTriangle,
+  CloudRain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Marquee } from '@/components/magicui/marquee';
 import { createClientSupabaseClient } from '@/lib/supabase/client';
+import { WeatherWidget } from '@/components/weather-widget';
+
+// *** Weather API Types ***
+interface WeatherCondition {
+  text: string;
+  icon: string;
+  code: number;
+}
+
+interface WeatherCurrent {
+  last_updated_epoch: number;
+  last_updated: string;
+  temp_c: number;
+  temp_f: number;
+  is_day: number;
+  condition: WeatherCondition;
+  wind_mph: number;
+  wind_kph: number;
+  wind_degree: number;
+  wind_dir: string;
+  pressure_mb: number;
+  pressure_in: number;
+  precip_mm: number;
+  precip_in: number;
+  humidity: number;
+  cloud: number;
+  feelslike_c: number;
+  feelslike_f: number;
+  vis_km: number;
+  vis_miles: number;
+  uv: number;
+  gust_mph: number;
+  gust_kph: number;
+}
+
+interface WeatherLocation {
+  name: string;
+  region: string;
+  country: string;
+  lat: number;
+  lon: number;
+  tz_id: string;
+  localtime_epoch: number;
+  localtime: string;
+}
+
+interface WeatherData {
+  location: WeatherLocation;
+  current: WeatherCurrent;
+}
 
 // Helper function to get time of day greeting
 const getTimeOfDay = () => {
@@ -28,11 +96,190 @@ const easeOutCubic = (t: number): number => {
   return 1 - Math.pow(1 - t, 3);
 };
 
+// *** New Welcome Message Component ***
+const WelcomeMessage = ({
+  userName,
+  isLoading
+}: {
+  userName: string;
+  isLoading: boolean;
+}) => {
+  return (
+    <div className='relative rounded-xl p-6 bg-gradient-to-br from-card via-card/95 to-card/90 backdrop-blur-sm border border-border/40 shadow-sm overflow-hidden h-full flex flex-col justify-center min-h-[180px]'>
+      {/* Background decorative elements */}
+      <div className='absolute -top-10 -right-10 w-32 h-32 rounded-full bg-primary/5 blur-xl opacity-60'></div>
+      <div className='absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-primary/5 blur-lg opacity-60'></div>
+
+      <div className='relative z-10'>
+        <div className='flex items-center gap-2 text-xs text-muted-foreground mb-2'>
+          <Clock className='h-3.5 w-3.5' />
+          <span>
+            {new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </span>
+          <span>•</span>
+          <span>
+            {new Date().toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: 'numeric',
+              hour12: true
+            })}
+          </span>
+        </div>
+
+        <h1 className='text-2xl md:text-3xl font-bold text-foreground'>
+          {isLoading ? (
+            <div className='h-8 w-48 md:h-9 md:w-64 bg-muted/30 rounded-lg animate-pulse'></div>
+          ) : (
+            <div className='flex flex-col sm:flex-row sm:items-end sm:gap-2'>
+              <span>Good {getTimeOfDay()},</span>
+              <span className='text-primary font-semibold break-words'>
+                {userName || 'User'}
+              </span>
+            </div>
+          )}
+        </h1>
+
+        <p className='text-muted-foreground text-sm mt-2'>
+          Here&apos;s your overview for today.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// *** New Weather and Quick Access Component ***
+const WeatherQuickAccess = () => {
+  const quickAccessItems = [
+    { icon: Calendar, label: 'Calendar', href: '/calendar' },
+    { icon: CreditCard, label: 'Payments', href: '/payments' },
+    { icon: Users, label: 'Members', href: '/members' },
+    { icon: FileText, label: 'Documents', href: '/documents' },
+    { icon: BarChart, label: 'Reports', href: '/reports' },
+    { icon: Settings, label: 'Settings', href: '/settings' }
+  ];
+
+  return (
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+      {/* Weather Widget */}
+      <WeatherWidget />
+
+      {/* Quick Navigation */}
+      <div className='bg-card text-card-foreground rounded-xl p-5 border border-border/40 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 min-h-[180px] flex flex-col'>
+        <h3 className='text-base font-semibold mb-4'>Quick Access</h3>
+        <div className='grid grid-cols-3 gap-3 flex-grow'>
+          {quickAccessItems.map((item) => (
+            <Link
+              href={item.href}
+              key={item.label}
+              className='flex flex-col items-center justify-center p-3 rounded-lg bg-accent/50 hover:bg-accent transition-all duration-200 group transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card'
+            >
+              <item.icon className='h-6 w-6 text-primary mb-1.5 group-hover:text-primary-foreground transition-colors duration-200' />
+              <span className='text-xs font-medium text-center text-foreground group-hover:text-primary-foreground transition-colors duration-200'>
+                {item.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// *** New Dashboard Stats Component ***
+const DashboardStats = () => {
+  const stats = [
+    {
+      label: 'My Courses',
+      value: 3,
+      unit: 'active',
+      change: '1 new this week',
+      changeColor: 'text-green-500',
+      icon: Briefcase
+    },
+    {
+      label: 'Tasks Due',
+      value: 7,
+      unit: 'total',
+      change: '2 due today',
+      changeColor: 'text-amber-500',
+      icon: ListChecks
+    },
+    {
+      label: 'Overall Progress',
+      value: 68,
+      unit: '%',
+      change: null,
+      changeColor: '',
+      icon: TrendingUp,
+      isProgress: true
+    },
+    {
+      label: 'Notifications',
+      value: 2,
+      unit: 'unread',
+      change: '1 new alert',
+      changeColor: 'text-rose-500',
+      icon: Bell
+    }
+  ];
+
+  return (
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6'>
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className='bg-card text-card-foreground rounded-xl p-4 shadow-sm border border-border/40 hover:border-primary/30 transition-all group hover:shadow-lg transform hover:-translate-y-1 duration-200'
+        >
+          <div className='flex items-start justify-between'>
+            <div>
+              <h3 className='text-sm font-medium text-muted-foreground mb-1'>
+                {stat.label}
+              </h3>
+              <div className='flex items-baseline'>
+                <span className='text-2xl lg:text-3xl font-bold mr-1.5'>
+                  {stat.value}
+                </span>
+                <span className='text-xs text-muted-foreground'>
+                  {stat.unit}
+                </span>
+              </div>
+              {stat.isProgress ? (
+                <div className='w-full bg-muted rounded-full h-1.5 mt-2.5 overflow-hidden'>
+                  <div
+                    className='bg-gradient-to-r from-green-400 to-green-600 h-1.5 rounded-full transition-all duration-500 ease-out'
+                    style={{ width: `${stat.value}%` }}
+                  ></div>
+                </div>
+              ) : (
+                stat.change && (
+                  <p
+                    className={cn('text-xs mt-2 font-medium', stat.changeColor)}
+                  >
+                    {stat.change}
+                  </p>
+                )
+              )}
+            </div>
+            <div className='p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-200 shrink-0'>
+              <stat.icon className='h-5 w-5' />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // Image slider component
 const ImageSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50; // Minimum distance for a swipe
 
   const slides = [
     {
@@ -56,30 +303,33 @@ const ImageSlider = () => {
     {
       id: 4,
       image: '/images/slide4.png',
-      title: 'Learn Anywhere',
-      description: 'Access your courses on any device'
+      title: 'Stay Connected',
+      description: 'Engage with peers and instructors'
     }
   ];
 
   const totalSlides = slides.length;
-  const maxDesktopIndex = Math.max(0, totalSlides - 3);
+  const slidesPerViewDesktop = 3;
+  const maxDesktopIndex = Math.max(0, totalSlides - slidesPerViewDesktop);
   const maxMobileIndex = totalSlides - 1;
 
   // Auto slide every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        // Check if we need to reset based on viewport
         const isDesktop = window.innerWidth >= 1024;
         const maxIndex = isDesktop ? maxDesktopIndex : maxMobileIndex;
+        // If on desktop and only one "page" of slides, don't auto-advance
+        if (isDesktop && maxDesktopIndex === 0) return prev;
         return prev >= maxIndex ? 0 : prev + 1;
       });
     }, 5000);
     return () => clearInterval(interval);
-  }, [maxDesktopIndex, maxMobileIndex]);
+  }, [maxDesktopIndex, maxMobileIndex, totalSlides]); // Add totalSlides dependency
 
   // Handle touch events for swipe on mobile
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchEnd(null); // Reset touch end on new start
     setTouchStart(e.targetTouches[0].clientX);
   };
 
@@ -88,15 +338,19 @@ const ImageSlider = () => {
   };
 
   const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 50) {
-      // Swipe left
-      setCurrentSlide((prev) => (prev >= maxMobileIndex ? 0 : prev + 1));
-    }
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
 
-    if (touchStart - touchEnd < -50) {
-      // Swipe right
+    if (isLeftSwipe) {
+      setCurrentSlide((prev) => (prev >= maxMobileIndex ? 0 : prev + 1));
+    } else if (isRightSwipe) {
       setCurrentSlide((prev) => (prev <= 0 ? maxMobileIndex : prev - 1));
     }
+    // Reset touch points
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   const goToSlide = (index: number) => {
@@ -104,28 +358,44 @@ const ImageSlider = () => {
   };
 
   const handlePrev = () => {
-    setCurrentSlide((prev) => (prev <= 0 ? maxMobileIndex : prev - 1));
+    setCurrentSlide((prev) => {
+      const isDesktop = window.innerWidth >= 1024;
+      const maxIndex = isDesktop ? maxDesktopIndex : maxMobileIndex;
+      // Prevent going beyond 0
+      return prev <= 0 ? 0 : prev - 1;
+    });
   };
 
   const handleNext = () => {
-    setCurrentSlide((prev) => (prev >= maxMobileIndex ? 0 : prev + 1));
+    setCurrentSlide((prev) => {
+      const isDesktop = window.innerWidth >= 1024;
+      const maxIndex = isDesktop ? maxDesktopIndex : maxMobileIndex;
+      // Prevent going beyond maxIndex
+      return prev >= maxIndex ? maxIndex : prev + 1;
+    });
   };
 
+  // Determine if buttons should be disabled
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+  const isPrevDisabled = currentSlide === 0;
+  const isNextDisabled =
+    currentSlide === (isDesktop ? maxDesktopIndex : maxMobileIndex);
+
   return (
-    <div className='mb-8'>
-      <div className='relative overflow-hidden rounded-2xl'>
+    <div className='mb-8 md:mb-10 lg:mb-12'>
+      <div className='relative rounded-2xl overflow-hidden group'>
         {/* Mobile slider (1 slide at a time) */}
         <div
-          className='lg:hidden relative w-full h-48 overflow-hidden'
+          className='lg:hidden relative w-full h-52 sm:h-64 overflow-hidden rounded-2xl'
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           <div
-            className='flex transition-transform duration-500 ease-in-out h-full'
+            className='flex transition-transform duration-500 ease-out h-full'
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
-            {slides.map((slide) => (
+            {slides.map((slide, index) => (
               <div
                 key={slide.id}
                 className='min-w-full h-full relative flex-shrink-0'
@@ -134,12 +404,12 @@ const ImageSlider = () => {
                   src={slide.image}
                   alt={slide.title}
                   className='absolute inset-0 w-full h-full object-cover'
-                  width={1000}
-                  height={1000}
-                  priority
+                  fill
+                  sizes='(max-width: 1023px) 100vw, 33vw'
+                  priority={index === 0} // Prioritize only the very first image
                 />
-                <div className='absolute inset-0 bg-gradient-to-t from-black/50 to-transparent' />
-                <div className='absolute inset-0 flex flex-col justify-end px-6 pb-6 z-20 text-white'>
+                <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent' />
+                <div className='absolute inset-x-0 bottom-0 p-6 z-10 text-white'>
                   <h2 className='text-xl font-bold mb-1'>{slide.title}</h2>
                   <p className='opacity-90 text-sm'>{slide.description}</p>
                 </div>
@@ -148,13 +418,15 @@ const ImageSlider = () => {
           </div>
 
           {/* Mobile navigation dots */}
-          <div className='absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-30'>
+          <div className='absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20'>
             {slides.map((_, index) => (
               <button
-                key={index}
+                key={`mobile-dot-${index}`}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 rounded-full ${
-                  currentSlide === index ? 'bg-white' : 'bg-white/50'
+                className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                  currentSlide === index
+                    ? 'bg-white scale-110'
+                    : 'bg-white/50 hover:bg-white/80'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -162,93 +434,95 @@ const ImageSlider = () => {
           </div>
         </div>
 
-        {/* Desktop slider (3 slides at a time) */}
-        <div className='hidden lg:block'>
-          <div className='relative'>
-            {/* Navigation buttons */}
-            <button
-              onClick={handlePrev}
-              className='absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-background hover:bg-accent text-foreground p-2 rounded-full shadow-md transition-colors'
-              aria-label='Previous slide'
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-5 w-5'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M15 19l-7-7 7-7'
-                />
-              </svg>
-            </button>
-            <button
-              onClick={handleNext}
-              className='absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-background hover:bg-accent text-foreground p-2 rounded-full shadow-md transition-colors'
-              aria-label='Next slide'
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-5 w-5'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M9 5l7 7-7 7'
-                />
-              </svg>
-            </button>
+        {/* Desktop slider (multiple slides at a time) */}
+        <div className='hidden lg:block relative'>
+          {/* Navigation buttons */}
+          <button
+            onClick={handlePrev}
+            className={cn(
+              'absolute left-[-18px] top-1/2 -translate-y-1/2 z-20 bg-card hover:bg-accent text-card-foreground p-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:left-4',
+              'disabled:opacity-30 disabled:cursor-not-allowed disabled:group-hover:left-[-18px]' // Keep disabled button hidden until hover
+            )}
+            aria-label='Previous slide'
+            disabled={isPrevDisabled}
+          >
+            <ChevronRight className='h-5 w-5 rotate-180' />
+          </button>
+          <button
+            onClick={handleNext}
+            className={cn(
+              'absolute right-[-18px] top-1/2 -translate-y-1/2 z-20 bg-card hover:bg-accent text-card-foreground p-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:right-4',
+              'disabled:opacity-30 disabled:cursor-not-allowed disabled:group-hover:right-[-18px]' // Keep disabled button hidden until hover
+            )}
+            aria-label='Next slide'
+            disabled={isNextDisabled}
+          >
+            <ChevronRight className='h-5 w-5' />
+          </button>
 
-            <div className='grid grid-cols-3 gap-4'>
-              {[0, 1, 2].map((offset) => {
-                const slideIndex = (currentSlide + offset) % totalSlides;
-                const slide = slides[slideIndex];
-                return (
-                  <div
-                    key={`desktop-${slide.id}`}
-                    className='h-72 relative rounded-xl overflow-hidden shadow-md transform transition-transform hover:scale-[1.02] duration-300'
-                  >
-                    <Image
-                      src={slide.image}
-                      alt={slide.title}
-                      className='absolute inset-0 w-full h-full object-cover'
-                      width={1000}
-                      height={1000}
-                      priority={offset === 0}
-                    />
-                    <div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
-                    <div className='absolute inset-0 flex flex-col justify-end p-5 z-20 text-white'>
-                      <h2 className='text-xl font-bold mb-1'>{slide.title}</h2>
-                      <p className='opacity-90 text-sm'>{slide.description}</p>
+          {/* Slide Container */}
+          <div className='overflow-hidden rounded-xl'>
+            <div
+              className='flex -mx-2' // Negative margin to counteract padding
+              style={{
+                width: `${(totalSlides / slidesPerViewDesktop) * 100}%`, // Container width based on total slides
+                transform: `translateX(-${
+                  (currentSlide * 100) / totalSlides
+                }%)`, // Move based on current slide index
+                transition: 'transform 0.5s ease-out'
+              }}
+            >
+              {slides.map((slide, index) => (
+                <div
+                  key={`desktop-${slide.id}`}
+                  className='px-2 flex-shrink-0' // Padding for gap, prevent shrinking
+                  style={{ width: `${100 / totalSlides}%` }} // Each slide takes equal portion of the inner container
+                >
+                  <div className='relative h-72 rounded-xl overflow-hidden shadow-md group/slide'>
+                    <div className='relative w-full h-full rounded-xl overflow-hidden transform transition-transform hover:scale-[1.03] duration-300'>
+                      <Image
+                        src={slide.image}
+                        alt={slide.title}
+                        className='absolute inset-0 w-full h-full object-cover'
+                        fill
+                        sizes='33vw'
+                        priority={index < slidesPerViewDesktop} // Prioritize initially visible images
+                        loading={
+                          index < slidesPerViewDesktop ? 'eager' : 'lazy'
+                        }
+                      />
+                      <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent' />
+                      <div className='absolute inset-x-0 bottom-0 p-5 z-10 text-white'>
+                        <h2 className='text-xl font-bold mb-1'>
+                          {slide.title}
+                        </h2>
+                        <p className='opacity-90 text-sm'>
+                          {slide.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Desktop navigation dots */}
           <div className='flex justify-center gap-2 mt-4'>
-            {slides.map((_, index) => (
-              <button
-                key={`dot-${index}`}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index >= currentSlide && index < currentSlide + 3
-                    ? 'bg-primary'
-                    : 'bg-muted'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
+            {/* Create dots only if there's more than one page */}
+            {maxDesktopIndex > 0 &&
+              Array.from({ length: maxDesktopIndex + 1 }).map((_, index) => (
+                <button
+                  key={`desktop-dot-${index}`}
+                  onClick={() => goToSlide(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    currentSlide === index
+                      ? 'bg-primary scale-110'
+                      : 'bg-muted hover:bg-muted-foreground/50'
+                  }`}
+                  aria-label={`Go to slide group ${index + 1}`}
+                />
+              ))}
           </div>
         </div>
       </div>
@@ -262,71 +536,129 @@ const CategoryGrid = () => {
     {
       id: 1,
       name: 'Academic',
-      icon: <BookOpen className='h-6 w-6' />,
-      gradient: 'from-blue-500/20 to-blue-600/20',
-      border: 'border-blue-500/30',
-      shadow: 'shadow-blue-500/20'
+      icon: BookOpen,
+      color: 'blue',
+      href: '/category/academic'
     },
     {
       id: 2,
       name: 'Finance',
-      icon: <DollarSign className='h-6 w-6' />,
-      gradient: 'from-emerald-500/20 to-emerald-600/20',
-      border: 'border-emerald-500/30',
-      shadow: 'shadow-emerald-500/20'
+      icon: DollarSign,
+      color: 'emerald',
+      href: '/category/finance'
     },
     {
       id: 3,
       name: 'Library',
-      icon: <Library className='h-6 w-6' />,
-      gradient: 'from-purple-500/20 to-purple-600/20',
-      border: 'border-purple-500/30',
-      shadow: 'shadow-purple-500/20'
+      icon: Library,
+      color: 'purple',
+      href: '/category/library'
     },
     {
       id: 4,
-      name: 'Calendar',
-      icon: <Calendar className='h-6 w-6' />,
-      gradient: 'from-orange-500/20 to-orange-600/20',
-      border: 'border-orange-500/30',
-      shadow: 'shadow-orange-500/20'
+      name: 'Events',
+      icon: Calendar,
+      color: 'orange',
+      href: '/category/events'
     }
   ];
 
+  // Define color themes for categories
+  const colorThemes = {
+    blue: {
+      gradient: 'from-blue-500/15 to-blue-600/15',
+      border: 'border-blue-500/30 hover:border-blue-500/50',
+      shadow: 'shadow-blue-500/10 group-hover:shadow-blue-500/20',
+      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+      iconText: 'text-blue-600 dark:text-blue-400',
+      hoverIconBg: 'group-hover:bg-blue-500',
+      hoverIconText: 'group-hover:text-white',
+      hoverText: 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
+    },
+    emerald: {
+      gradient: 'from-emerald-500/15 to-emerald-600/15',
+      border: 'border-emerald-500/30 hover:border-emerald-500/50',
+      shadow: 'shadow-emerald-500/10 group-hover:shadow-emerald-500/20',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      iconText: 'text-emerald-600 dark:text-emerald-400',
+      hoverIconBg: 'group-hover:bg-emerald-500',
+      hoverIconText: 'group-hover:text-white',
+      hoverText:
+        'group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+    },
+    purple: {
+      gradient: 'from-purple-500/15 to-purple-600/15',
+      border: 'border-purple-500/30 hover:border-purple-500/50',
+      shadow: 'shadow-purple-500/10 group-hover:shadow-purple-500/20',
+      iconBg: 'bg-purple-100 dark:bg-purple-900/30',
+      iconText: 'text-purple-600 dark:text-purple-400',
+      hoverIconBg: 'group-hover:bg-purple-500',
+      hoverIconText: 'group-hover:text-white',
+      hoverText: 'group-hover:text-purple-600 dark:group-hover:text-purple-400'
+    },
+    orange: {
+      gradient: 'from-orange-500/15 to-orange-600/15',
+      border: 'border-orange-500/30 hover:border-orange-500/50',
+      shadow: 'shadow-orange-500/10 group-hover:shadow-orange-500/20',
+      iconBg: 'bg-orange-100 dark:bg-orange-900/30',
+      iconText: 'text-orange-600 dark:text-orange-400',
+      hoverIconBg: 'group-hover:bg-orange-500',
+      hoverIconText: 'group-hover:text-white',
+      hoverText: 'group-hover:text-orange-600 dark:group-hover:text-orange-400'
+    }
+  };
+
   return (
-    <div className='mb-8'>
-      <h2 className='text-xl md:text-2xl font-bold mb-6 text-foreground'>
-        Categories
+    <div className='mb-8 md:mb-10 lg:mb-12'>
+      <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
+        Explore Categories
       </h2>
-      <div className='grid grid-cols-4 gap-4 md:gap-6 lg:gap-8'>
-        {categories.map((category) => (
-          <Link
-            href={`/category/${category.id}`}
-            key={category.id}
-            className='group relative'
-          >
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${category.gradient} backdrop-blur-xl -z-10 rounded-xl`}
-            />
-            <div
-              className={`
-                flex flex-col items-center justify-center p-4 md:p-6 lg:p-8
-                transition-all duration-300
-                hover:scale-105 hover:shadow-xl
-              `}
+      <div className='grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6'>
+        {categories.map((category) => {
+          const theme = colorThemes[category.color as keyof typeof colorThemes];
+          return (
+            <Link
+              href={category.href}
+              key={category.id}
+              className='group relative rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
             >
+              {/* Background Gradient */}
               <div
-                className={`text-foreground transition-colors ${category.border} bg-background/30 backdrop-blur-sm
-                shadow-lg ${category.shadow} duration-300 group-hover:text-foreground p-3 md:p-4 rounded-full bg-background/50 ${category.border}`}
+                className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-50 group-hover:opacity-100 transition-opacity duration-300 -z-10`}
+              />
+              {/* Main Card Content */}
+              <div
+                className={cn(
+                  'bg-card/80 backdrop-blur-sm border rounded-xl p-5 md:p-6 flex flex-col items-center justify-center aspect-square transition-all duration-300',
+                  theme.border,
+                  theme.shadow
+                )}
               >
-                {category.icon}
+                {/* Icon Container */}
+                <div
+                  className={cn(
+                    'p-3 md:p-4 rounded-full mb-3 transition-all duration-300',
+                    theme.iconBg,
+                    theme.iconText,
+                    theme.hoverIconBg,
+                    theme.hoverIconText // Hover styles for icon
+                  )}
+                >
+                  <category.icon className='h-6 w-6 md:h-7 md:w-7' />
+                </div>
+                {/* Category Name */}
+                <span
+                  className={cn(
+                    'text-sm md:text-base font-medium text-center text-foreground transition-colors duration-300',
+                    theme.hoverText // Hover style for text
+                  )}
+                >
+                  {category.name}
+                </span>
               </div>
-              <span className='mt-3 text-sm md:text-base font-medium text-foreground group-hover:text-foreground'>
-                {category.name}
-              </span>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
@@ -339,7 +671,7 @@ type Application = {
   category: string;
   rating: number;
   icon: string; // Path to icon image
-  url: string;
+  url: string; // URL to the application page or external site
 };
 
 // Application List component with View All option
@@ -353,115 +685,231 @@ const ApplicationList = ({
   const displayedApps = applications.slice(0, limit);
 
   return (
-    <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm'>
-      {displayedApps.map((app, index) => (
-        <Link
-          href={`/applications/${app.id}`}
-          key={app.id}
-          className='flex items-center p-4 md:p-5 border-b border-border hover:bg-accent/10 transition-colors'
-        >
-          <div className='flex-shrink-0 w-8 md:w-10 text-muted-foreground font-medium text-center'>
-            {index + 1}
-          </div>
-          <div className='flex-shrink-0 h-14 w-14 md:h-16 md:w-16 shadow-md bg-background rounded-xl overflow-hidden mr-4'>
-            <Image
-              src={app.icon}
-              alt={app.name}
-              width={100}
-              height={100}
-              className='h-full w-full object-cover'
-            />
-          </div>
-          <div className='flex-grow'>
-            <h3 className='text-base md:text-lg font-medium text-foreground'>
-              {app.name}
-            </h3>
-            <p className='text-xs md:text-sm text-muted-foreground'>
-              {app.category}
-            </p>
-          </div>
-          <div className='flex items-center ml-2'>
-            <Star className='h-4 w-4 md:h-5 md:w-5 text-yellow-400 fill-current' />
-            <span className='text-sm md:text-base font-medium ml-1'>
-              {app.rating.toFixed(1)}
-            </span>
-          </div>
-        </Link>
-      ))}
+    <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm border border-border/30'>
+      <ul className='divide-y divide-border'>
+        {displayedApps.map((app, index) => (
+          <li key={app.id}>
+            <Link
+              href={app.url} // Link to the application URL
+              target='_blank' // Open external links in new tab
+              rel='noopener noreferrer'
+              className='flex items-center p-4 hover:bg-accent/60 transition-colors group duration-200'
+            >
+              {/* Index Number (optional, shown on larger screens) */}
+              <div className='flex-shrink-0 w-8 text-muted-foreground font-medium text-center mr-3 hidden sm:block'>
+                {index + 1}
+              </div>
+              {/* App Icon */}
+              <div className='flex-shrink-0 h-12 w-12 md:h-14 md:w-14 shadow bg-background rounded-lg overflow-hidden mr-4 transform transition-transform duration-200 group-hover:scale-105'>
+                <Image
+                  src={app.icon}
+                  alt={`${app.name} icon`}
+                  width={64}
+                  height={64}
+                  className='h-full w-full object-cover'
+                />
+              </div>
+              {/* App Name & Category */}
+              <div className='flex-grow min-w-0'>
+                <h3 className='text-base font-medium text-foreground truncate group-hover:text-primary transition-colors duration-200'>
+                  {app.name}
+                </h3>
+                <p className='text-sm text-muted-foreground truncate'>
+                  {app.category}
+                </p>
+              </div>
+              {/* Rating */}
+              <div className='flex items-center ml-3 pl-3 border-l border-border/50 shrink-0'>
+                <Star className='h-4 w-4 md:h-5 md:w-5 text-yellow-400 fill-current mr-1' />
+                <span className='text-sm md:text-base font-medium'>
+                  {app.rating.toFixed(1)}
+                </span>
+              </div>
+              {/* Chevron Icon */}
+              <ChevronRight className='h-5 w-5 ml-2 text-muted-foreground/50 group-hover:text-primary transition-colors duration-200 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1' />
+            </Link>
+          </li>
+        ))}
+      </ul>
 
       {/* View All Link */}
-      <Link
-        href='/applications'
-        className='flex items-center justify-center p-4 md:p-5 text-primary font-medium hover:bg-accent/10 transition-colors'
-      >
-        View All Applications
-        <ChevronRight className='h-5 w-5 ml-1' />
-      </Link>
+      {applications.length > limit && (
+        <Link
+          href='/applications' // Link to view all applications page
+          className='flex items-center justify-center p-4 text-primary font-medium hover:bg-accent/60 transition-colors text-sm'
+        >
+          View All Applications
+          <ChevronRight className='h-4 w-4 ml-1' />
+        </Link>
+      )}
+    </div>
+  );
+};
+
+// Quick Links Component
+const QuickLinks = () => {
+  const links = [
+    { href: '/profile', icon: User, label: 'My Profile' },
+    { href: '/courses', icon: Briefcase, label: 'My Courses' },
+    { href: '/notifications', icon: Bell, label: 'Notifications' },
+    { href: '/help', icon: HelpCircle, label: 'Help & Support' }
+  ];
+
+  return (
+    <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm border border-border/30'>
+      <ul className='divide-y divide-border'>
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className='flex items-center p-4 hover:bg-accent/60 transition-colors group duration-200'
+            >
+              {/* Icon */}
+              <span className='w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-4 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200 flex-shrink-0'>
+                <link.icon className='h-5 w-5' />
+              </span>
+              {/* Label */}
+              <span className='text-foreground font-medium group-hover:text-primary transition-colors duration-200 flex-grow'>
+                {link.label}
+              </span>
+              {/* Chevron */}
+              <ChevronRight className='h-5 w-5 ml-2 text-muted-foreground/60 group-hover:text-primary transition-colors duration-200 transform group-hover:translate-x-1' />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Announcement Card Component (Optional, can be used if structure repeats often)
+const AnnouncementCard = ({
+  title,
+  image,
+  excerpt,
+  href
+}: {
+  title: string;
+  image: string;
+  excerpt: string;
+  href: string;
+}) => {
+  return (
+    <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-border/30 group transform hover:-translate-y-1 flex flex-col'>
+      <div className='relative h-48 md:h-56 overflow-hidden'>
+        <Image
+          src={image}
+          alt={title}
+          className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
+          fill
+          sizes='(max-width: 767px) 100vw, 50vw'
+          loading='lazy'
+        />
+        <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent' />
+      </div>
+      <div className='p-5 flex flex-col flex-grow'>
+        <h3 className='text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-200'>
+          {title}
+        </h3>
+        <p className='text-sm text-muted-foreground mb-4 line-clamp-3 flex-grow'>
+          {excerpt}
+        </p>
+        <Link
+          href={href}
+          className='inline-flex items-center text-primary font-medium text-sm hover:underline focus:outline-none focus:ring-1 focus:ring-primary rounded mt-auto self-start'
+        >
+          Read More
+          <ChevronRight className='h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform' />
+        </Link>
+      </div>
     </div>
   );
 };
 
 export default function HomePage() {
-  // Add state for user name
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch user data when component mounts
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setIsLoading(true);
-        const supabase = createClientSupabaseClient();
-        const {
-          data: { user },
-          error: authError
-        } = await supabase.auth.getUser();
+    let isMounted = true; // Flag to prevent state update on unmounted component
 
-        if (authError) {
-          console.error('Error fetching auth user:', authError);
-          setIsLoading(false);
-          return;
+    const fetchUserData = async () => {
+      // Set loading true only if component is mounted
+      if (isMounted) setIsLoading(true);
+
+      try {
+        const supabase = createClientSupabaseClient();
+        const { data: authData, error: authError } =
+          await supabase.auth.getUser();
+
+        // Stop if component unmounted during async call
+        if (!isMounted) return;
+
+        if (authError || !authData?.user) {
+          console.error(
+            'Error fetching auth user or no user found:',
+            authError?.message
+          );
+          setUserName('Guest');
+          return; // Keep loading false (set in finally)
         }
 
-        if (user) {
-          // Check if profiles table exists by handling potential errors
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
+        const user = authData.user;
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
 
-          if (error) {
-            // If the error is 'not found', it means the profile doesn't exist yet
-            if (error.code === 'PGRST116') {
-              console.log('User profile not found, using default name');
-              // You could create a profile here if needed
-            } else {
-              console.error('Error fetching user profile:', error.message);
-            }
-          } else if (data && data.full_name) {
-            setUserName(data.full_name);
-          }
+        // Stop if component unmounted
+        if (!isMounted) return;
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          // PGRST116: Row not found
+          console.error('Error fetching user profile:', profileError.message);
+          // Decide how to handle profile fetch error, maybe keep loading or use default
+          setUserName(user.email?.split('@')[0] || 'User'); // Fallback if profile fetch fails
+        } else if (profileData?.full_name) {
+          setUserName(profileData.full_name);
+        } else {
+          console.log(
+            'User profile not found or name is missing, using default.'
+          );
+          // Fallback to part of email or a generic name
+          setUserName(user.email?.split('@')[0] || 'User');
         }
       } catch (error) {
-        console.error('Error in fetchUserData:', error);
+        if (isMounted) {
+          console.error('Unexpected error in fetchUserData:', error);
+          setUserName('Guest'); // Fallback on unexpected error
+        }
       } finally {
-        setIsLoading(false);
+        // Ensure loading is set to false only if component is still mounted
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchUserData();
-  }, []);
+
+    // Cleanup function to set isMounted to false when the component unmounts
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // Available applications data
-  const applications = [
+  const applications: Application[] = [
+    // Using placeholder URLs for demo
     {
       id: 1,
       name: 'Instasolver',
       category: 'Management',
       rating: 4.1,
       icon: '/app/app1.png',
-      url: 'https://www.instasolver.com'
+      url: '#'
     },
     {
       id: 2,
@@ -469,612 +917,121 @@ export default function HomePage() {
       category: 'Management',
       rating: 4.5,
       icon: '/app/app2.png',
-      url: 'https://www.onboarding.com'
+      url: '#'
     },
     {
       id: 3,
-      name: 'Venu Booking',
-      category: 'Management',
+      name: 'Venue Booking',
+      category: 'Logistics',
       rating: 4.4,
       icon: '/app/app3.jpg',
-      url: 'https://www.kukutv.com'
+      url: '#'
     },
     {
       id: 4,
       name: 'GPT Manager',
-      category: 'Management',
+      category: 'AI Tools',
       rating: 4.7,
       icon: '/app/app4.png',
-      url: 'https://gptmanager.com'
+      url: '#'
+    },
+    {
+      id: 5,
+      name: 'Data Analyser',
+      category: 'Analytics',
+      rating: 4.9,
+      icon: '/app/app5.png',
+      url: '#'
+    } // Ensure this icon exists
+  ];
+
+  // Dummy Announcements Data
+  const announcements = [
+    {
+      id: 1,
+      title: 'New Semester Guidelines',
+      image: '/images/bg11.png',
+      excerpt:
+        'Important updates regarding the upcoming semester schedule, course registration, and academic policies are now available.',
+      href: '/announcements/semester-guidelines'
+    },
+    {
+      id: 2,
+      title: 'Upcoming Campus Events',
+      image: '/images/bg12.jpg',
+      excerpt:
+        "Check out the exciting lineup of events, workshops, and activities happening on campus this month. Don't miss out!",
+      href: '/announcements/campus-events'
     }
   ];
 
   return (
-    <div className='flex flex-col min-h-screen bg-background text-foreground'>
+    <div className='flex flex-col min-h-screen bg-gradient-to-b from-background via-background to-muted/20 text-foreground'>
       {/* Main Content */}
-      <main className='flex-1 px-5 py-6 md:px-8 lg:px-12 md:py-8 max-w-7xl mx-auto w-full'>
-        {/* Welcome Message */}
-        <div className='mb-8 overflow-hidden'>
-          <div className='relative rounded-xl p-5 md:p-6 bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-sm border border-border/40 shadow-sm'>
-            {/* Background decorative elements */}
-            <div className='absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/5 blur-xl'></div>
-            <div className='absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-primary/5 blur-lg'></div>
-
-            <div className='relative z-10'>
-              {/* User greeting section */}
-              <div className='flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5 md:mb-8'>
-                <div>
-                  <div className='flex items-center gap-2 text-xs text-muted-foreground mb-1.5'>
-                    <svg
-                      className='h-3.5 w-3.5'
-                      viewBox='0 0 24 24'
-                      fill='none'
-                      xmlns='http://www.w3.org/2000/svg'
-                    >
-                      <path
-                        d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                        stroke='currentColor'
-                        strokeWidth='2'
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                      />
-                    </svg>
-                    <span>
-                      {new Date().toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </span>
-                    <span>•</span>
-                    <span>
-                      {new Date().toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: true
-                      })}
-                    </span>
-                  </div>
-
-                  <h1 className='text-xl md:text-2xl lg:text-3xl font-bold text-foreground'>
-                    {isLoading ? (
-                      <div className='h-8 w-40 md:h-10 md:w-64 bg-muted/40 rounded-lg animate-pulse'></div>
-                    ) : (
-                      <div className='flex flex-col gap-1 md:flex-row md:items-end md:gap-2'>
-                        <span>Good {getTimeOfDay()},</span>
-                        <span className='text-primary font-semibold'>
-                          {userName || 'User'}
-                        </span>
-                      </div>
-                    )}
-                  </h1>
-
-                  <p className='text-muted-foreground text-xs md:text-sm mt-1.5'>
-                    Welcome to your personalized dashboard
-                  </p>
-                </div>
-
-                {/* Weather Widget & Quick Navigation */}
-                <div className='flex flex-col md:flex-row gap-3 mt-4'>
-                  {/* Weather Widget */}
-                  <div className='bg-white dark:bg-gray-800 rounded-lg p-4 border border-border/40 shadow-sm flex-1'>
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <h3 className='text-sm font-medium'>Kuala Lumpur</h3>
-                        <div className='flex items-center mt-1'>
-                          <div className='text-3xl font-bold'>29°</div>
-                          <div className='ml-2'>
-                            <p className='text-xs text-muted-foreground'>
-                              Feels like 32°
-                            </p>
-                            <p className='text-xs'>Partly Cloudy</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className='h-12 w-12 text-primary'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          viewBox='0 0 24 24'
-                          fill='none'
-                          stroke='currentColor'
-                          strokeWidth='2'
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                        >
-                          <path d='M17 18a5 5 0 0 0-10 0' />
-                          <line x1='12' y1='9' x2='12' y2='2' />
-                          <line x1='4.22' y1='10.22' x2='5.64' y2='11.64' />
-                          <line x1='1' y1='18' x2='3' y2='18' />
-                          <line x1='21' y1='18' x2='23' y2='18' />
-                          <line x1='18.36' y1='11.64' x2='19.78' y2='10.22' />
-                          <line x1='23' y1='22' x2='1' y2='22' />
-                          <polyline points='8 6 12 2 16 6' />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className='flex mt-3 pt-3 border-t border-border/40'>
-                      <div className='flex-1 text-center'>
-                        <p className='text-xs text-muted-foreground'>
-                          Humidity
-                        </p>
-                        <p className='text-sm font-medium'>68%</p>
-                      </div>
-                      <div className='flex-1 text-center border-x border-border/40'>
-                        <p className='text-xs text-muted-foreground'>Wind</p>
-                        <p className='text-sm font-medium'>8 km/h</p>
-                      </div>
-                      <div className='flex-1 text-center'>
-                        <p className='text-xs text-muted-foreground'>
-                          Precipitation
-                        </p>
-                        <p className='text-sm font-medium'>12%</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Navigation */}
-                  <div className='bg-white dark:bg-gray-800 rounded-lg p-4 border border-border/40 shadow-sm flex-1'>
-                    <h3 className='text-sm font-medium mb-3'>Quick Access</h3>
-                    <div className='grid grid-cols-3 gap-2'>
-                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5 text-primary'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                          />
-                        </svg>
-                        <span className='text-xs mt-1'>Calendar</span>
-                      </button>
-                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5 text-primary'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'
-                          />
-                        </svg>
-                        <span className='text-xs mt-1'>Payments</span>
-                      </button>
-                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5 text-primary'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
-                          />
-                        </svg>
-                        <span className='text-xs mt-1'>Members</span>
-                      </button>
-                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5 text-primary'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
-                          />
-                        </svg>
-                        <span className='text-xs mt-1'>Documents</span>
-                      </button>
-                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5 text-primary'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
-                          />
-                        </svg>
-                        <span className='text-xs mt-1'>Reports</span>
-                      </button>
-                      <button className='flex flex-col items-center justify-center p-2 rounded-md bg-primary/5 hover:bg-primary/10 transition-colors'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5 text-primary'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-                          />
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                          />
-                        </svg>
-                        <span className='text-xs mt-1'>Settings</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Widgets for stats */}
-              <div className='grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 md:mt-0'>
-                {/* Courses Widget */}
-                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
-                        My Courses
-                      </h3>
-                      <div className='flex items-baseline'>
-                        <span className='text-2xl font-bold mr-1'>3</span>
-                        <span className='text-xs text-muted-foreground'>
-                          courses
-                        </span>
-                      </div>
-                      <p className='text-xs text-green-500 mt-1.5'>
-                        1 new this week
-                      </p>
-                    </div>
-                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        className='h-4 w-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tasks Widget */}
-                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
-                        Tasks
-                      </h3>
-                      <div className='flex items-baseline'>
-                        <span className='text-2xl font-bold mr-1'>7</span>
-                        <span className='text-xs text-muted-foreground'>
-                          total
-                        </span>
-                      </div>
-                      <p className='text-xs text-amber-500 mt-1.5'>
-                        2 due today
-                      </p>
-                    </div>
-                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        className='h-4 w-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Widget */}
-                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
-                        Progress
-                      </h3>
-                      <div className='flex items-baseline'>
-                        <span className='text-2xl font-bold mr-1'>68</span>
-                        <span className='text-xs text-muted-foreground'>%</span>
-                      </div>
-                      <div className='w-full bg-gray-200 rounded-full h-1.5 mt-2'>
-                        <div
-                          className='bg-green-600 h-1.5 rounded-full'
-                          style={{ width: '68%' }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        className='h-4 w-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Alerts Widget */}
-                <div className='bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-border/40 hover:border-primary/30 transition-all group'>
-                  <div className='flex items-start justify-between'>
-                    <div>
-                      <h3 className='text-xs font-medium text-muted-foreground mb-1'>
-                        Alerts
-                      </h3>
-                      <div className='flex items-baseline'>
-                        <span className='text-2xl font-bold mr-1'>2</span>
-                        <span className='text-xs text-muted-foreground'>
-                          alerts
-                        </span>
-                      </div>
-                      <p className='text-xs text-rose-500 mt-1.5'>
-                        1 new notification
-                      </p>
-                    </div>
-                    <div className='p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors'>
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        className='h-4 w-4'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <main className='flex-1 px-4 py-6 md:px-6 lg:px-8 md:py-8 max-w-7xl mx-auto w-full'>
+        {/* Top Section: Welcome, Weather, Quick Access */}
+        <section className='mb-8 md:mb-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch'>
+          <div className='lg:col-span-1'>
+            <WelcomeMessage userName={userName} isLoading={isLoading} />
           </div>
-        </div>
+          <div className='lg:col-span-2'>
+            <WeatherQuickAccess />
+          </div>
+        </section>
+
+        {/* Dashboard Stats Section */}
+        <section className='mb-8 md:mb-10 lg:mb-12'>
+          <DashboardStats />
+        </section>
 
         {/* Image Slider */}
-        <ImageSlider />
+        <section className='mb-8 md:mb-10 lg:mb-12'>
+          <ImageSlider />
+        </section>
 
-        {/* Two-column layout for desktop */}
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'>
+        {/* Two-column layout for main content + sidebar */}
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start'>
           {/* Main content column */}
-          <div className='lg:col-span-2'>
+          <div className='lg:col-span-2 flex flex-col gap-8 md:gap-10 lg:gap-12'>
             {/* Category Grid */}
             <CategoryGrid />
 
             {/* Announcements Section */}
-            <section className='mb-8'>
-              <h2 className='text-xl md:text-2xl font-bold mb-6 text-foreground'>
-                Announcements
+            <section>
+              <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
+                Latest Announcements
               </h2>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                {/* Announcement Card */}
-                <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200'>
-                  <div className='relative h-48 md:h-56'>
-                    <Image
-                      src='/images/bg11.png'
-                      alt='New Semester Guidelines'
-                      className='w-full h-full object-cover'
-                      width={1000}
-                      height={1000}
-                      loading='lazy'
-                    />
-                    <div className='absolute inset-0 bg-gradient-to-t from-black/50 to-transparent' />
-                  </div>
-                  <div className='p-5'>
-                    <h3 className='text-lg font-semibold text-foreground mb-2'>
-                      New Semester Guidelines
-                    </h3>
-                    <p className='text-sm text-muted-foreground mb-4 line-clamp-3'>
-                      Important updates regarding the upcoming semester
-                      schedule, course registration, and academic policies...
-                    </p>
-                    <Link
-                      href='#'
-                      className='inline-flex items-center text-primary font-medium text-sm hover:text-primary/80 transition-colors'
-                    >
-                      Read More
-                      <ChevronRight className='h-4 w-4 ml-1' />
-                    </Link>
-                  </div>
-                </div>
-
-                <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200'>
-                  <div className='relative h-48 md:h-56'>
-                    <Image
-                      src='/images/bg12.jpg'
-                      alt='New Semester Guidelines'
-                      className='w-full h-full object-cover'
-                      width={1000}
-                      height={1000}
-                      loading='lazy'
-                    />
-                    <div className='absolute inset-0 bg-gradient-to-t from-black/50 to-transparent' />
-                  </div>
-                  <div className='p-5'>
-                    <h3 className='text-lg font-semibold text-foreground mb-2'>
-                      New Semester Guidelines
-                    </h3>
-                    <p className='text-sm text-muted-foreground mb-4 line-clamp-3'>
-                      Important updates regarding the upcoming semester
-                      schedule, course registration, and academic policies...
-                    </p>
-                    <Link
-                      href='#'
-                      className='inline-flex items-center text-primary font-medium text-sm hover:text-primary/80 transition-colors'
-                    >
-                      Read More
-                      <ChevronRight className='h-4 w-4 ml-1' />
-                    </Link>
-                  </div>
-                </div>
+                {announcements.map((announcement) => (
+                  <AnnouncementCard
+                    key={announcement.id}
+                    title={announcement.title}
+                    image={announcement.image}
+                    excerpt={announcement.excerpt}
+                    href={announcement.href}
+                  />
+                ))}
               </div>
             </section>
           </div>
 
           {/* Sidebar column */}
-          <div className='lg:col-span-1'>
+          <div className='lg:col-span-1 flex flex-col gap-8 md:gap-10 lg:gap-12'>
             {/* Available Applications Section */}
-            <section className='mb-8'>
-              <h2 className='text-xl md:text-2xl font-bold mb-6 text-foreground'>
+            <section>
+              <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
                 Available Applications
               </h2>
-              <ApplicationList applications={applications} limit={5} />
+              {/* Limit to 4 apps for sidebar */}
+              <ApplicationList applications={applications} limit={4} />
             </section>
 
             {/* Quick Links Card */}
-            <section className='mb-8'>
-              <h2 className='text-xl md:text-2xl font-bold mb-6 text-foreground'>
+            <section>
+              <h2 className='text-xl md:text-2xl font-bold mb-5 md:mb-6 text-foreground'>
                 Quick Links
               </h2>
-              <div className='bg-card text-card-foreground rounded-xl overflow-hidden shadow-sm'>
-                <ul className='divide-y divide-border'>
-                  <li>
-                    <Link
-                      href='/profile'
-                      className='flex items-center p-4 hover:bg-accent/10 transition-colors'
-                    >
-                      <span className='w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-3'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                          />
-                        </svg>
-                      </span>
-                      <span className='text-foreground'>My Profile</span>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href='/courses'
-                      className='flex items-center p-4 hover:bg-accent/10 transition-colors'
-                    >
-                      <span className='w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-3'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
-                          />
-                        </svg>
-                      </span>
-                      <span className='text-foreground'>My Courses</span>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href='/notifications'
-                      className='flex items-center p-4 hover:bg-accent/10 transition-colors'
-                    >
-                      <span className='w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-3'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
-                          />
-                        </svg>
-                      </span>
-                      <span className='text-foreground'>Notifications</span>
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href='/help'
-                      className='flex items-center p-4 hover:bg-accent/10 transition-colors'
-                    >
-                      <span className='w-8 h-8 flex items-center justify-center bg-primary/10 text-primary rounded-full mr-3'>
-                        <svg
-                          xmlns='http://www.w3.org/2000/svg'
-                          className='h-5 w-5'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                          />
-                        </svg>
-                      </span>
-                      <span className='text-foreground'>Help & Support</span>
-                    </Link>
-                  </li>
-                </ul>
-              </div>
+              <QuickLinks />
             </section>
           </div>
         </div>

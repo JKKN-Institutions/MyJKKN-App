@@ -12,60 +12,6 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  useEffect(() => {
-    // Configure widget with correct config name and options
-    (window as any).TacbotConfig = {
-      position: 'right',
-      baseUrl: process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:3001',
-      // Store user data for the widget to access
-      getUser: () => {
-        const userData = localStorage.getItem('auth-user');
-        if (userData) {
-          try {
-            const user = JSON.parse(userData);
-            // Save user data in the format the widget expects
-            localStorage.setItem(
-              'user-details',
-              JSON.stringify({
-                id: user.id,
-                name: user.name || user.email,
-                mobile: user.phone || ''
-              })
-            );
-            return user;
-          } catch (e) {
-            console.error('Error parsing user data:', e);
-          }
-        }
-        return null;
-      }
-    };
-
-    // Call the getUser function to set up user data
-    (window as any).TacbotConfig.getUser();
-
-    // Load widget script with environment-aware URL
-    const widgetUrl =
-      process.env.NEXT_PUBLIC_WIDGET_URL || 'http://localhost:3001';
-    const script = document.createElement('script');
-    script.src = `${widgetUrl}/widget.js`;
-    script.async = true;
-    document.body.appendChild(script);
-
-    // Cleanup on unmount
-    return () => {
-      if (script.parentNode) {
-        document.body.removeChild(script);
-      }
-      const widgetContainer = document.getElementById(
-        'jkknbot-widget-container'
-      );
-      if (widgetContainer && widgetContainer.parentNode) {
-        widgetContainer.parentNode.removeChild(widgetContainer);
-      }
-    };
-  }, []);
-
   return (
     <AuthGuard>
       <AuthProvider>

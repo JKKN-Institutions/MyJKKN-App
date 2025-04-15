@@ -61,14 +61,14 @@ const Header = () => {
   };
 
   return (
-    <header className='sticky top-0 z-50 bg-background border-b border-border px-5 py-3 flex items-center justify-between shadow-sm'>
+    <header className='sticky top-0 z-50 bg-background border-b border-border lg:px-8 px-2 py-3 flex items-center justify-between shadow-sm'>
       <div className='flex items-center'>
         <Link href='/home'>
           <Logo width={120} height={40} />
         </Link>
       </div>
 
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-4'>
         {/* Notification Icon with Animation */}
         <button
           aria-label='Notifications'

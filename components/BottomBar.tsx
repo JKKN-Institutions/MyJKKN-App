@@ -103,8 +103,8 @@ const BottomBar = () => {
   };
 
   return (
-    <nav className='sticky lg:hidden bottom-0 bg-background border-t border-border py-3 px-6 flex justify-center z-[9999]'>
-      <div className='flex max-w-md w-full gap-8 lg:gap-12 justify-center'>
+    <nav className='sticky bottom-0 bg-background border-t border-border py-3 px-6 flex justify-center z-50'>
+      <div className='flex max-w-md w-full gap-6 lg:gap-12 justify-center'>
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
